@@ -1,0 +1,74 @@
+<div class="register-wrapper">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>GymTrack</mat-card-title>
+      <mat-card-subtitle>Crie sua conta</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome</mat-label>
+          <input matInput type="text" formControlName="name" placeholder="Seu nome" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <mat-error>Nome é obrigatório.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="seu@email.com" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <mat-error>
+              @if (form.controls.email.errors?.['required']) {
+                E-mail é obrigatório.
+              } @else if (form.controls.email.errors?.['email']) {
+                Informe um e-mail válido.
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" formControlName="password" placeholder="Mínimo 8 caracteres" />
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <mat-error>
+              @if (form.controls.password.errors?.['required']) {
+                Senha é obrigatória.
+              } @else if (form.controls.password.errors?.['minlength']) {
+                A senha deve ter no mínimo 8 caracteres.
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        @if (hasError()) {
+          <div class="error-banner" role="alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="form.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Criar conta
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions-center">
+      <span>Já tem uma conta?</span>
+      <a mat-button color="primary" routerLink="/login">Entrar</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

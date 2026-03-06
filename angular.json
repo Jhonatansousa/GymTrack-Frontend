@@ -64,7 +64,8 @@
               "buildTarget": "gymtrack-frontend:build:production"
             },
             "development": {
-              "buildTarget": "gymtrack-frontend:build:development"
+              "buildTarget": "gymtrack-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

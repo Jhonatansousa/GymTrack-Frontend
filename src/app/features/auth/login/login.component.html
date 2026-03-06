@@ -1,0 +1,60 @@
+<div class="login-wrapper">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>GymTrack</mat-card-title>
+      <mat-card-subtitle>Acesse sua conta</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="seu@email.com" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <mat-error>
+              @if (form.controls.email.errors?.['required']) {
+                E-mail é obrigatório.
+              } @else if (form.controls.email.errors?.['email']) {
+                Informe um e-mail válido.
+              }
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" formControlName="password" placeholder="••••••••" />
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <mat-error>Senha é obrigatória.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (hasError()) {
+          <div class="error-banner" role="alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="form.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Entrar
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions-center">
+      <span>Não tem uma conta?</span>
+      <a mat-button color="primary" routerLink="/register">Registre-se</a>
+    </mat-card-actions>
+  </mat-card>
+</div>
