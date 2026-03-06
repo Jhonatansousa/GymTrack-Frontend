@@ -9,6 +9,7 @@ This file contains concise, actionable guidance for AI coding agents working on 
   - *Prod Environment:* `https://gymtrack-83nr.onrender.com/api/v1`
 - **Bootstrapping:** `bootstrapApplication` using `appConfig` in `src/app/app.config.ts`.
 - **Styling:** SCSS globally. Use ready-to-use component libraries (e.g., Angular Material or Tailwind UI) for rapid UI scaffolding.
+- **Visual Style:** Modern, polished, and professional UI. Prefer ready-made component libraries (Material/Tailwind) for a consistent look.
 
 ## 2. Architecture & Directory Structure
 Adhere strictly to the following structure to maintain separation of concerns:

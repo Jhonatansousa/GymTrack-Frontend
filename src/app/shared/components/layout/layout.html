@@ -1,1 +1,38 @@
-<p>layout works!</p>
+<header>
+  <mat-toolbar color="primary" class="app-toolbar">
+    <span class="toolbar-title">GymTrack</span>
+    <span class="toolbar-spacer"></span>
+    <button mat-icon-button (click)="logout()" aria-label="Sair">
+      <mat-icon>logout</mat-icon>
+    </button>
+    <button mat-button (click)="logout()">Sair</button>
+  </mat-toolbar>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>
+
+<footer class="app-footer">
+  <p>
+    Desenvolvido por <strong>Jhonatan</strong> &mdash; Engenharia de Software
+  </p>
+  <nav class="footer-links">
+    <a
+      href="https://github.com/jhonatan"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="GitHub"
+    >
+      <mat-icon>code</mat-icon>
+      GitHub
+    </a>
+    <a
+      href="mailto:jhonatan@email.com"
+      aria-label="E-mail"
+    >
+      <mat-icon>mail</mat-icon>
+      Contato
+    </a>
+  </nav>
+</footer>
