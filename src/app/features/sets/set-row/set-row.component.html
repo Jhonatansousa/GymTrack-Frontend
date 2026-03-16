@@ -1,0 +1,80 @@
+<div class="set-row">
+  <div class="set-cell">
+    @if (!isEditingName()) {
+      <button class="cell-button" type="button" (click)="startEditingName()">
+        {{ currentName() }}
+      </button>
+    } @else {
+      <input
+        class="cell-input"
+        type="text"
+        [value]="currentName()"
+        (input)="onNameInput($event)"
+      />
+    }
+  </div>
+
+  <div class="set-cell">
+    @if (!isEditingWeight()) {
+      <button class="cell-button" type="button" (click)="startEditingWeight()">
+        {{ currentWeight() }}
+      </button>
+    } @else {
+      <input
+        class="cell-input"
+        type="number"
+        [value]="currentWeight()"
+        (input)="onWeightInput($event)"
+      />
+    }
+  </div>
+
+  <div class="set-cell">
+    @if (!isEditingReps()) {
+      <button class="cell-button" type="button" (click)="startEditingReps()">
+        {{ currentReps() }}
+      </button>
+    } @else {
+      <input
+        class="cell-input"
+        type="number"
+        [value]="currentReps()"
+        (input)="onRepsInput($event)"
+      />
+    }
+  </div>
+
+  <div class="set-actions">
+    @if (hasChanges()) {
+      <button
+        mat-icon-button
+        color="primary"
+        type="button"
+        aria-label="Salvar alterações"
+        [disabled]="isSaving()"
+        (click)="saveChanges()"
+      >
+        <mat-icon>check</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Cancelar alterações"
+        [disabled]="isSaving()"
+        (click)="cancelEdit()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+
+    <button
+      mat-icon-button
+      type="button"
+      color="warn"
+      aria-label="Excluir série"
+      (click)="deleteSet()"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>

@@ -22,19 +22,30 @@ export class SetService {
       .pipe(map((response) => response.results ?? []));
   }
 
-  create(payload: ExerciseSetDTO): Observable<ExerciseSetResponseDTO> {
+  createNewSet(payload: ExerciseSetDTO): Observable<ExerciseSetResponseDTO> {
     return this.http
       .post<APIResponse<ExerciseSetResponseDTO>>(this.apiUrl, payload)
       .pipe(map((response) => response.results as ExerciseSetResponseDTO));
   }
 
-  update(
+  updateExerciseSet(
     setId: number,
     payload: ExerciseSetUpdateDTO
   ): Observable<ExerciseSetResponseDTO> {
     return this.http
       .patch<APIResponse<ExerciseSetResponseDTO>>(`${this.apiUrl}/${setId}`, payload)
       .pipe(map((response) => response.results as ExerciseSetResponseDTO));
+  }
+
+  create(payload: ExerciseSetDTO): Observable<ExerciseSetResponseDTO> {
+    return this.createNewSet(payload);
+  }
+
+  update(
+    setId: number,
+    payload: ExerciseSetUpdateDTO
+  ): Observable<ExerciseSetResponseDTO> {
+    return this.updateExerciseSet(setId, payload);
   }
 
   delete(setId: number): Observable<void> {

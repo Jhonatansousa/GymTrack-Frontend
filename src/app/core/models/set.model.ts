@@ -1,8 +1,8 @@
 export interface ExerciseSetDTO {
   exerciseId: number;
   name?: string;
-  reps: number;
-  weight: number;
+  reps: number | null;
+  weight: number | null;
 }
 
 export interface ExerciseSetUpdateDTO {
