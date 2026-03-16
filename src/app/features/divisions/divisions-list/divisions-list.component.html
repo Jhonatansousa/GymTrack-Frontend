@@ -1,0 +1,55 @@
+<section class="divisions-page">
+  <header class="page-header">
+    <div>
+      <h1>Divisões de Treino</h1>
+      <p>Organize suas divisões e acesse os exercícios de cada uma.</p>
+    </div>
+
+    <button mat-fab extended color="primary" type="button" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nova Divisão
+    </button>
+  </header>
+
+  @if (hasError()) {
+    <div class="error-banner" role="alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else {
+    @if (divisions().length === 0) {
+      <div class="empty-state">
+        <mat-icon>fitness_center</mat-icon>
+        <p>Nenhuma divisão cadastrada ainda.</p>
+      </div>
+    } @else {
+      <div class="divisions-grid">
+        @for (division of divisions(); track division.id) {
+          <mat-card>
+            <mat-card-header>
+              <mat-icon mat-card-avatar>fitness_center</mat-icon>
+              <mat-card-title>{{ division.name }}</mat-card-title>
+            </mat-card-header>
+
+            <mat-card-actions align="end">
+              <button mat-flat-button color="primary" type="button" (click)="viewExercises(division)">
+                Ver Exercícios
+              </button>
+              <button mat-icon-button type="button" aria-label="Editar divisão" (click)="openEditDialog(division)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button type="button" class="delete-action" aria-label="Excluir divisão" (click)="confirmDelete(division)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  }
+</section>
