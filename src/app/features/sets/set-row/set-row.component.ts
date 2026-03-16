@@ -1,11 +1,16 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import {
   ExerciseSetResponseDTO,
   ExerciseSetUpdateDTO,
 } from '../../../core/models/set.model';
 import { SetService } from '../../../core/services/set.service';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-set-row',
@@ -16,6 +21,7 @@ import { SetService } from '../../../core/services/set.service';
 })
 export class SetRowComponent {
   private setService = inject(SetService);
+  private dialog = inject(MatDialog);
 
   set = input.required<ExerciseSetResponseDTO>();
   deleted = output<number>();
@@ -54,6 +60,18 @@ export class SetRowComponent {
 
   startEditingWeight(): void {
     this.isEditingWeight.set(true);
+  }
+
+  stopEditingName(): void {
+    this.isEditingName.set(false);
+  }
+
+  stopEditingReps(): void {
+    this.isEditingReps.set(false);
+  }
+
+  stopEditingWeight(): void {
+    this.isEditingWeight.set(false);
   }
 
   onNameInput(event: Event): void {
@@ -120,10 +138,24 @@ export class SetRowComponent {
   }
 
   deleteSet(): void {
-    this.setService.delete(this.set().exerciseSetId).subscribe({
-      next: () => {
-        this.deleted.emit(this.set().exerciseSetId);
-      },
+    const data: ConfirmDialogData = {
+      title: 'Excluir série',
+      message: 'Tem certeza que deseja excluir esta série?',
+    };
+
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data,
+    }).afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.setService.delete(this.set().exerciseSetId).subscribe({
+        next: () => {
+          this.deleted.emit(this.set().exerciseSetId);
+        },
+      });
     });
   }
 }

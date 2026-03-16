@@ -1,4 +1,4 @@
-<div class="set-row">
+<div class="set-row-container">
   <div class="set-cell">
     @if (!isEditingName()) {
       <button class="cell-button" type="button" (click)="startEditingName()">
@@ -10,6 +10,8 @@
         type="text"
         [value]="currentName()"
         (input)="onNameInput($event)"
+        (blur)="stopEditingName()"
+        (keydown.enter)="stopEditingName()"
       />
     }
   </div>
@@ -25,6 +27,8 @@
         type="number"
         [value]="currentWeight()"
         (input)="onWeightInput($event)"
+        (blur)="stopEditingWeight()"
+        (keydown.enter)="stopEditingWeight()"
       />
     }
   </div>
@@ -40,6 +44,8 @@
         type="number"
         [value]="currentReps()"
         (input)="onRepsInput($event)"
+        (blur)="stopEditingReps()"
+        (keydown.enter)="stopEditingReps()"
       />
     }
   </div>
