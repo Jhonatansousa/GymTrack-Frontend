@@ -25,6 +25,7 @@ export interface ExerciseDialogData {
     ReactiveFormsModule,
   ],
   templateUrl: './exercise-dialog.component.html',
+  styleUrls: ['./exercise-dialog.component.scss'],
 })
 export class ExerciseDialogComponent {
   private fb = inject(FormBuilder);

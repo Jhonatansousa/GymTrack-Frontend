@@ -18,13 +18,14 @@
 
   p {
     margin: 0.25rem 0 0;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--color-text-muted);
   }
 }
 
 .error-banner {
-  background: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
+  background: rgba(226, 33, 52, 0.16);
+  border: 1px solid var(--color-danger);
+  color: var(--color-text-main);
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
 }
@@ -35,7 +36,7 @@
   display: grid;
   place-items: center;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--color-text-muted);
 }
 
 .empty-state {
@@ -56,6 +57,22 @@
 
 mat-card {
   border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-primary);
+  }
+
+  mat-card-title {
+    color: var(--color-text-main);
+  }
+
+  mat-icon[mat-card-avatar] {
+    color: var(--color-primary);
+  }
 
   mat-card-actions {
     padding: 0.75rem 1rem 1rem;
@@ -66,5 +83,5 @@ mat-card {
 }
 
 .delete-action {
-  color: var(--mat-sys-error);
+  color: var(--color-danger);
 }

@@ -10,7 +10,7 @@
         type="text"
         [value]="currentName()"
         (input)="onNameInput($event)"
-        (blur)="stopEditingName()"
+        (blur)="isEditingName.set(false)"
         (keydown.enter)="stopEditingName()"
       />
     }
@@ -27,7 +27,7 @@
         type="number"
         [value]="currentWeight()"
         (input)="onWeightInput($event)"
-        (blur)="stopEditingWeight()"
+        (blur)="isEditingWeight.set(false)"
         (keydown.enter)="stopEditingWeight()"
       />
     }
@@ -44,7 +44,7 @@
         type="number"
         [value]="currentReps()"
         (input)="onRepsInput($event)"
-        (blur)="stopEditingReps()"
+        (blur)="isEditingReps.set(false)"
         (keydown.enter)="stopEditingReps()"
       />
     }

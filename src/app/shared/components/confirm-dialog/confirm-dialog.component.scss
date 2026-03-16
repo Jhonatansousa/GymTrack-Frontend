@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  color: var(--color-text-main);
+}
+
+mat-dialog-content {
+  color: var(--color-text-muted);
+  min-width: min(92vw, 460px);
+}
+
+mat-dialog-content p {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+mat-dialog-actions {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.85rem;
+}

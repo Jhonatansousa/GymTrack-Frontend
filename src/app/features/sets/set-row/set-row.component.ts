@@ -50,15 +50,24 @@ export class SetRowComponent {
     this.currentWeight.set(currentSet.weight);
   }
 
+  private closeAllEditors(): void {
+    this.isEditingName.set(false);
+    this.isEditingReps.set(false);
+    this.isEditingWeight.set(false);
+  }
+
   startEditingName(): void {
+    this.closeAllEditors();
     this.isEditingName.set(true);
   }
 
   startEditingReps(): void {
+    this.closeAllEditors();
     this.isEditingReps.set(true);
   }
 
   startEditingWeight(): void {
+    this.closeAllEditors();
     this.isEditingWeight.set(true);
   }
 
@@ -91,19 +100,16 @@ export class SetRowComponent {
 
   hasChanges(): boolean {
     const original = this.set();
+    const nameChanged = this.currentName().trim() !== original.setName;
+    const repsChanged = this.currentReps() !== original.reps;
+    const weightChanged = this.currentWeight() !== original.weight;
 
-    return (
-      this.currentName().trim() !== original.setName ||
-      this.currentReps() !== original.reps ||
-      this.currentWeight() !== original.weight
-    );
+    return nameChanged || repsChanged || weightChanged;
   }
 
   cancelEdit(): void {
     this.syncFromSet();
-    this.isEditingName.set(false);
-    this.isEditingReps.set(false);
-    this.isEditingWeight.set(false);
+    this.closeAllEditors();
   }
 
   saveChanges(): void {

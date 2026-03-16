@@ -25,6 +25,7 @@ export interface DivisionDialogData {
     ReactiveFormsModule,
   ],
   templateUrl: './division-dialog.component.html',
+  styleUrls: ['./division-dialog.component.scss'],
 })
 export class DivisionDialogComponent {
   private fb = inject(FormBuilder);

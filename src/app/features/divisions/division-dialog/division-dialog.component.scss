@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  color: var(--color-text-main);
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-dialog-content {
+  color: var(--color-text-muted);
+  min-width: min(92vw, 420px);
+}
+
+mat-dialog-actions {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.85rem;
+}
+
+input[matInput] {
+  color: var(--color-text-main);
+  caret-color: var(--color-primary);
+}

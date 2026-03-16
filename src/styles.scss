@@ -5,6 +5,18 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+:root {
+  --color-bg-base: #121212;
+  --color-surface: #181818;
+  --color-surface-hover: #282828;
+  --color-primary: #1ED760;
+  --color-primary-dark: #1DB954;
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #B3B3B3;
+  --color-danger: #E22134;
+  --color-border: #333333;
+}
+
 html {
   height: 100%;
   @include mat.theme(
@@ -20,20 +32,57 @@ html {
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
+  color-scheme: dark;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   height: 100%;
 }
+
+.mat-mdc-card,
+.mat-expansion-panel,
+.mat-mdc-dialog-container {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text-main) !important;
+}
+
+.mat-toolbar.mat-primary {
+  background-color: var(--color-bg-base) !important;
+  color: var(--color-text-main) !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-flat-button.mat-primary,
+.mdc-fab.mat-primary {
+  background-color: var(--color-primary) !important;
+  color: #000 !important;
+  font-weight: 700;
+}
+
+.mat-mdc-raised-button.mat-primary:hover,
+.mat-mdc-flat-button.mat-primary:hover,
+.mdc-fab.mat-primary:hover {
+  background-color: var(--color-primary-dark) !important;
+}
+
+.mat-mdc-raised-button.mat-warn,
+.mat-mdc-flat-button.mat-warn {
+  background-color: var(--color-danger) !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+}
+
+.mat-mdc-raised-button.mat-warn:hover,
+.mat-mdc-flat-button.mat-warn:hover {
+  filter: brightness(1.08);
+}
+
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  color: var(--color-text-main) !important;
+  border-color: var(--color-border) !important;
+}
+
 /* You can add global styles to this file, and also import other style files */
