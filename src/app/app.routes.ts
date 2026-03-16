@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Layout } from './shared/components/layout/layout';
 import { authGuard } from './core/guards/auth.guard';
 import { DivisionsListComponent } from './features/divisions/divisions-list/divisions-list.component';
+import { ExercisesPageComponent } from './features/exercises/exercises-page/exercises-page.component';
 
 export const routes: Routes = [
   // Rotas públicas — sem layout, sem guard
@@ -34,6 +35,10 @@ export const routes: Routes = [
       {
         path: 'divisions',
         component: DivisionsListComponent,
+      },
+      {
+        path: 'divisions/:divisionId/exercises',
+        component: ExercisesPageComponent,
       },
     ],
   },

@@ -1,0 +1,64 @@
+<section class="exercises-page">
+  <header class="page-header">
+    <button mat-stroked-button color="primary" routerLink="/divisions" type="button">
+      <mat-icon>arrow_back</mat-icon>
+      Voltar para Divisões
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Novo Exercício
+    </button>
+  </header>
+
+  @if (hasError()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else {
+    @if (exercises().length === 0) {
+      <div class="empty-state">
+        <mat-icon>fitness_center</mat-icon>
+        <p>Nenhum exercício cadastrado nesta divisão.</p>
+      </div>
+    } @else {
+      <mat-accordion class="exercise-accordion" multi>
+        @for (exercise of exercises(); track exercise.exerciseId) {
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ exercise.exerciseName }}</mat-panel-title>
+
+              <div class="panel-actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Editar exercício"
+                  (click)="openEditDialog(exercise, $event)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  aria-label="Excluir exercício"
+                  (click)="confirmDelete(exercise, $event)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-expansion-panel-header>
+
+            <ng-template matExpansionPanelContent>
+              <app-exercise-sets-list [exerciseId]="exercise.exerciseId"></app-exercise-sets-list>
+            </ng-template>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+    }
+  }
+</section>

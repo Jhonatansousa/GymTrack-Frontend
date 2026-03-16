@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>
+  @if (isEditMode) {
+    Editar Exercício
+  } @else {
+    Novo Exercício
+  }
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nome do exercício</mat-label>
+      <input matInput formControlName="name" placeholder="Ex.: Supino reto" />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <mat-error>Nome é obrigatório.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancelar</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="form.invalid"
+    (click)="save()"
+  >
+    Salvar
+  </button>
+</mat-dialog-actions>

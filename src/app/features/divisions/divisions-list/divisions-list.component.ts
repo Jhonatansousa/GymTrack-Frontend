@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +32,7 @@ import {
 export class DivisionsListComponent implements OnInit {
   private divisionService = inject(DivisionService);
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   divisions = this.divisionService.divisions;
   isLoading = signal(false);
@@ -123,5 +125,7 @@ export class DivisionsListComponent implements OnInit {
     });
   }
 
-  viewExercises(_division: WorkoutDivisionResponseDTO): void {}
+  viewExercises(division: WorkoutDivisionResponseDTO): void {
+    this.router.navigate(['/divisions', division.id, 'exercises']);
+  }
 }
