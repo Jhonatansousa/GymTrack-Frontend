@@ -1,26 +1,40 @@
-name: CI
+name: Angular Frontend CI
 
+# Define quando o pipeline será executado
 on:
   push:
     branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Baixa o código do repositório para o runner do GitHub
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      # 2. Configura a versão exata do Node.js
+      - name: Setup Node.js v24.14.0
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24.14.0'
           cache: 'npm'
 
+      # 3. Instalação limpa das dependências
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run tests
+      # 4. Verifica a formatação e boas práticas de código
+      - name: Run Linting
+        run: npm run lint
+
+      # 5. Executa a suíte de testes unitários em modo Headless
+      - name: Run Unit Tests
         run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+      # 6. Garante que o projeto compila para produção sem erros
+      - name: Build for Production
+        run: npm run build
