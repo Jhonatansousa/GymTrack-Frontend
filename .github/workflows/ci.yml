@@ -33,7 +33,7 @@ jobs:
 
       # 5. Executa a suíte de testes unitários em modo Headless
       - name: Run Unit Tests
-        run: npm run test -- --watch=false --browsers=ChromeHeadless
+        run: npm run test
 
       # 6. Garante que o projeto compila para produção sem erros
       - name: Build for Production
