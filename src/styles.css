@@ -1,3 +1,39 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+:root {
+  /* Light mode */
+  --color-primary: #146ef5;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+}
+
+:root.dark {
+  /* Dark mode */
+  --color-primary: #60a5fa;
+  --color-background: #0a101d;
+  --color-surface: #0f172a;
+  --color-text: #e2e8f0;
+}
+
+html,
+body {
+  @apply min-h-full antialiased;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* Optional: apply semantic surface and primary colors to components */
+.button {
+  @apply px-4 py-2 rounded font-semibold;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.card {
+  @apply p-4 rounded shadow;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
