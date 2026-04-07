@@ -146,6 +146,19 @@ You must write idiomatic Angular 21 code. Legacy Angular patterns will be reject
 
 ---
 
+## Routing Guidelines (Angular 21)
+
+- **Add routes only after a new component has a failing test and the minimal implementation passes.** - **Do not modify routes for every small test or iteration.** - **Routes should reflect actual features/components**, never placeholders or speculative future components.  
+- **Use a centralized routing file** (`app.routes.ts`) for all navigation.  
+
+### When adding a new route:
+1. Confirm the target component exists and is functional (tests passing).  
+2. Add the route with a clear path.
+3. ALWAYS prefer modern lazy loading for feature components using `loadComponent: () => import('./path/to/component').then(m => m.Component)`. 
+4. Ensure navigation is testable via unit or integration tests.
+
+---
+
 ## Styling & UI UX
 
 * **Tailwind CSS:** Strictly use Tailwind utility classes. Keep custom CSS in `styles.css` to an absolute minimum.
