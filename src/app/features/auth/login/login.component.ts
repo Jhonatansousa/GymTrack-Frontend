@@ -21,6 +21,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
             placeholder="Email"
             class="w-full rounded border px-3 py-2"
           />
+          @if (loginForm.controls.email.hasError('required') && loginForm.controls.email.touched) {
+            <p class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          }
 
           <input
             type="password"
@@ -28,8 +31,21 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
             placeholder="Senha"
             class="w-full rounded border px-3 py-2"
           />
+          @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
+            <p class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          }
 
-          <button type="submit" [disabled]="loginForm.invalid" class="w-full rounded border px-3 py-2 font-medium">Entrar</button>
+          <button
+            type="submit"
+            [disabled]="loginForm.invalid"
+            [class.opacity-50]="loginForm.invalid"
+            [class.cursor-not-allowed]="loginForm.invalid"
+            [class.bg-black]="loginForm.valid"
+            [class.text-white]="loginForm.valid"
+            class="w-full rounded border px-3 py-2 font-medium transition"
+          >
+            Entrar
+          </button>
         </form>
       </section>
     } @else {
