@@ -69,4 +69,52 @@ describe('LoginComponent', () => {
     expect(submitButton).toBeTruthy();
     expect(submitButton?.textContent).toContain('Entrar');
   });
+
+  it('should disable login button when email field is empty', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+
+    expect(component.loginForm.invalid).toBeTruthy();
+    expect(submitButton.disabled).toBe(true);
+  });
+
+  it('should disable login button when password field is empty', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+
+    expect(component.loginForm.invalid).toBeTruthy();
+    expect(submitButton.disabled).toBe(true);
+  });
+
+  it('should disable login button when email and password fields are empty', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('');
+    component.loginForm.controls.password.setValue('');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+
+    expect(component.loginForm.invalid).toBeTruthy();
+    expect(submitButton.disabled).toBe(true);
+  });
 });
