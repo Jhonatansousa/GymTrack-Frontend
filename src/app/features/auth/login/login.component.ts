@@ -10,6 +10,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
       <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
         <h1 class="text-xl font-semibold">Login</h1>
 
+        <button type="button" (click)="showRegister()" class="self-start text-sm underline">
+          Criar conta
+        </button>
+
         <form [formGroup]="loginForm" class="flex flex-col gap-3">
           <input
             type="email"
@@ -24,11 +28,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
             placeholder="Senha"
             class="w-full rounded border px-3 py-2"
           />
-        </form>
 
-        <button type="button" (click)="showRegister()" class="self-start text-sm underline">
-          Criar conta
-        </button>
+          <button type="submit" class="w-full rounded border px-3 py-2 font-medium">Entrar</button>
+        </form>
       </section>
     } @else {
       <section>Registro</section>
