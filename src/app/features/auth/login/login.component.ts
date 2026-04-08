@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 @Component({
-  selector: 'app-auth-page',
+  selector: 'app-login',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (isLoginMode()) {
@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
     }
   `,
 })
-export class AuthPageComponent {
+export class LoginComponent {
   readonly isLoginMode = signal(true);
 
   showRegister(): void {

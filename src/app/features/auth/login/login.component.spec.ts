@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AuthPageComponent } from './auth-page.component';
+import { LoginComponent } from './login.component';
 
-describe('AuthPageComponent', () => {
+describe('LoginComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AuthPageComponent],
+      imports: [LoginComponent],
     }).compileComponents();
   });
 
   it('should start in Login mode', () => {
-    const fixture = TestBed.createComponent(AuthPageComponent);
+    const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -24,7 +24,7 @@ describe('AuthPageComponent', () => {
   });
 
   it('should switch DOM to Registro mode when clicking the toggle button', () => {
-    const fixture = TestBed.createComponent(AuthPageComponent);
+    const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -37,5 +37,25 @@ describe('AuthPageComponent', () => {
 
     expect(compiled.textContent).toContain('Registro');
     expect(compiled.textContent).not.toContain('Login');
+  });
+
+  it('should render an email input field in Login mode', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const emailInput = compiled.querySelector("input[type='email']");
+
+    expect(emailInput).toBeTruthy();
+  });
+
+  it('should render a password input field in Login mode', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const passwordInput = compiled.querySelector("input[type='password']");
+
+    expect(passwordInput).toBeTruthy();
   });
 });
