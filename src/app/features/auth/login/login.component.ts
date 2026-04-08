@@ -29,7 +29,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
             class="w-full rounded border px-3 py-2"
           />
 
-          <button type="submit" class="w-full rounded border px-3 py-2 font-medium">Entrar</button>
+          <button type="submit" [disabled]="loginForm.invalid" class="w-full rounded border px-3 py-2 font-medium">Entrar</button>
         </form>
       </section>
     } @else {
