@@ -58,4 +58,15 @@ describe('LoginComponent', () => {
 
     expect(passwordInput).toBeTruthy();
   });
+
+  it('should render an Entrar submit button in Login mode', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const submitButton = compiled.querySelector("button[type='submit']");
+
+    expect(submitButton).toBeTruthy();
+    expect(submitButton?.textContent).toContain('Entrar');
+  });
 });
