@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 type RegisterForm = {
   name: FormControl<string>;
@@ -16,14 +17,21 @@ type RegisterForm = {
       <input type="text" formControlName="name" />
       <input type="email" formControlName="email" />
       <input type="password" formControlName="password" />
-      <button type="submit">Register</button>
+      <button type="submit" [disabled]="registerForm.invalid">Register</button>
+      <button type="button" (click)="goToLogin()">Already a user?</button>
     </form>
   `,
 })
 export class RegisterComponent {
+  private readonly router = inject(Router);
+
   readonly registerForm = new FormGroup<RegisterForm>({
-    name: new FormControl('', { nonNullable: true }),
-    email: new FormControl('', { nonNullable: true }),
-    password: new FormControl('', { nonNullable: true }),
+    name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
+
+  goToLogin(): void {
+    void this.router.navigate(['/auth']);
+  }
 }

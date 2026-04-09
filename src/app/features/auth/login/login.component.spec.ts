@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { LoginComponent } from './login.component';
 
@@ -6,6 +7,7 @@ describe('LoginComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
@@ -23,7 +25,7 @@ describe('LoginComponent', () => {
     expect(toggleButton?.textContent).toContain('Criar conta');
   });
 
-  it('should switch DOM to Registro mode when clicking the toggle button', () => {
+  it('should render a create account navigation button', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
 
@@ -31,12 +33,7 @@ describe('LoginComponent', () => {
     const toggleButton = compiled.querySelector('button');
 
     expect(toggleButton).toBeTruthy();
-
-    toggleButton?.dispatchEvent(new MouseEvent('click'));
-    fixture.detectChanges();
-
-    expect(compiled.textContent).toContain('Registro');
-    expect(compiled.textContent).not.toContain('Login');
+    expect(toggleButton?.textContent).toContain('Criar conta');
   });
 
   it('should render an email input field in Login mode', () => {
