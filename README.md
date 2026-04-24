@@ -1,59 +1,233 @@
-# GymtrackFrontend
+# GymTrack Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Frontend do projeto de estudos **GymTrack**, construído com Angular moderno e orientado por um modelo de desenvolvimento inspirado nas práticas defendidas por Fabio Akita (XP + TDD + micro-releases + feedback rápido).
 
-## Development server
+Este repositório representa a camada de interface de uma solução cujo backend MVP já existe em Java com Spring.
 
-To start a local development server, run:
+## 1. Objetivo do Projeto
 
-```bash
-ng serve
+O objetivo principal deste projeto **não é apenas entregar telas**, mas validar na prática um processo de engenharia com IA como pair programming:
+
+- Entregar incrementos pequenos e verificáveis (micro-releases)
+- Evoluir com testes antes de código (TDD)
+- Manter arquitetura simples, sem overengineering
+- Garantir base sustentável para evoluir do MVP para produção
+
+Em resumo: aprender e aplicar disciplina de desenvolvimento em um produto real, de ponta a ponta.
+
+## 2. Estado Atual
+
+### Status Geral
+
+- Backend: MVP concluído (Java + Spring)
+- Frontend: em desenvolvimento ativo
+- Foco atual: autenticação, fundações de arquitetura e qualidade
+
+### Funcionalidades já implementadas no Frontend
+
+- Roteamento inicial com lazy loading
+- Fluxo de autenticação inicial com telas de login e registro
+- Formulários reativos tipados para login e registro
+- Validações de formulário no cliente (required, formato de email, regras de senha)
+- Navegação entre login e registro
+- Testes unitários cobrindo comportamento de componentes e validações
+
+### Funcionalidades ainda em construção
+
+- Integração HTTP real com endpoints do backend (auth, divisões, exercícios e séries)
+- Interceptor funcional para JWT e tratamento centralizado de erros
+- Fluxo pós-login (dashboard principal)
+- Gestão completa de treino (CRUD de divisões, exercícios e sets)
+- Melhorias de UX, feedback assíncrono e acessibilidade avançada
+
+## 3. Stack e Versões
+
+### Frontend
+
+- Angular CLI: `21.2.0`
+- Angular Core/Router/Forms: `^21.2.0`
+- TypeScript: `~5.9.2`
+- RxJS: `~7.8.0`
+- Tailwind CSS: `^4.1.12`
+- ESLint: `^10.0.3`
+- Test Runner: Vitest (`^4.0.8`) via Angular build tooling
+- Package Manager: npm (`11.9.0`)
+
+### Backend (referência)
+
+- Java + Spring Boot (MVP já implementado em repositório/backend separado)
+- API REST com autenticação JWT
+
+## 4. Arquitetura do Frontend
+
+### Princípios arquiteturais
+
+- Organização por feature (não por tipo global de arquivo)
+- Componentes standalone
+- Lazy loading de rotas para reduzir acoplamento inicial
+- Formulários reativos tipados
+- Design orientado a separação de responsabilidades
+
+### Estrutura atual (resumo)
+
+```text
+src/
+	app/
+		app.config.ts
+		app.routes.ts
+		features/
+			auth/
+				login/
+					login.component.ts
+					login.component.spec.ts
+				register/
+					register.component.ts
+					register.component.spec.ts
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Rotas atuais
 
-## Code scaffolding
+- `/` -> redireciona para `/auth`
+- `/auth` -> tela de login
+- `/auth/register` -> tela de cadastro
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Direção arquitetural alvo
+
+Evoluir para um fluxo completo com:
+
+- Camada de serviços HTTP por contexto de domínio
+- Interceptadores funcionais para autenticação e erros
+- Estado local com sinais/reatividade moderna onde fizer sentido
+- Contratos tipados alinhados ao backend
+- Estrutura pronta para escalar novas features sem reescrita estrutural
+
+## 5. Modelo de Desenvolvimento (baseado no Akita)
+
+Este projeto segue o modelo de engenharia orientado por:
+
+- **Pair Programming com IA**: humano define direção e decisões; IA acelera implementação
+- **TDD**: Red -> Green -> Refactor
+- **Small Releases**: mudanças pequenas, testáveis e revertíveis
+- **Refatoração contínua**: evitar acúmulo de dívida técnica
+- **Integração contínua mental/operacional**: qualidade a cada incremento
+
+### Regras práticas adotadas
+
+- Sem feature grande em um único salto
+- Sempre validar impacto antes de expandir escopo
+- Evitar abstrações prematuras (YAGNI)
+- Priorizar clareza e manutenção sobre “sofisticação”
+- Documentar decisões para preservar contexto e consistência
+
+## 6. Fluxo de Qualidade
+
+### Testes
+
+- Testes unitários de componentes e comportamento de UI
+- Validação de regras de formulário com cenários positivos e negativos
+
+### Lint e consistência
+
+- ESLint com angular-eslint
+- Convenções modernas de Angular
+
+### Qualidade esperada por incremento
+
+- Código funcional
+- Testes passando
+- Escopo claro
+- Sem regressões no fluxo existente
+
+## 7. Contratos de API (direção funcional)
+
+Com base na especificação atual de integração, o frontend deve conversar com endpoints para:
+
+- Autenticação (`/auth/register`, `/auth/login`)
+- Divisões de treino (`/divisions`)
+- Exercícios (`/exercises`)
+- Séries (`/sets`)
+
+Regras importantes já consideradas no desenho:
+
+- JWT para endpoints protegidos
+- Tratamento explícito de erros comuns (`401`, `409`, etc.)
+- Respeito às regras de negócio do backend (ex.: auto naming de set quando permitido)
+
+## 8. Como Executar o Projeto
+
+### Pré-requisitos
+
+- Node.js instalado
+- npm instalado
+
+### Instalação
 
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Rodar em desenvolvimento
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+Aplicação disponível em `http://localhost:4200`.
 
-To build the project run:
+### Build
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Testes
 
 ```bash
-ng test
+npm test
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+### Lint
 
 ```bash
-ng e2e
+npm run lint
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## 9. Roadmap de Evolução
 
-## Additional Resources
+### Curto prazo
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Integrar login/registro com backend real
+- Persistência e leitura de token JWT
+- Guardas de rota para áreas autenticadas
+- Tela inicial pós-login
+
+### Médio prazo
+
+- CRUD de divisões de treino
+- CRUD de exercícios por divisão
+- CRUD de sets por exercício
+- Feedback assíncrono (loading, sucesso, erro)
+
+### Próximos passos de arquitetura
+
+- Interceptors funcionais (auth + error)
+- Padronização de models/DTOs tipados
+- Organização de serviços por domínio
+- Evolução da estratégia de estado e cache local
+
+## 10. Filosofia do Repositório
+
+Este projeto é um laboratório prático de engenharia de software aplicada, onde o sucesso é medido por:
+
+- Evolução contínua com segurança
+- Qualidade sustentada por testes
+- Arquitetura compreensível e escalável
+- Entrega incremental real
+
+Não é um experimento de “gerar código rápido”; é um exercício de construir software de forma profissional, com disciplina.
+
+## 11. Observações finais
+
+- O backend já existe em MVP e guia os contratos funcionais do frontend
+- O frontend está em fase ativa de construção de base arquitetural
+- Este README deve evoluir junto com o produto, mantendo histórico claro do estado do projeto
