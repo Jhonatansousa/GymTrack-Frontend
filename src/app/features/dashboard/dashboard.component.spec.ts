@@ -1,0 +1,21 @@
+import { TestBed } from '@angular/core/testing';
+
+import { DashboardComponent } from './dashboard.component';
+
+describe('DashboardComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DashboardComponent],
+    }).compileComponents();
+  });
+
+  it('should render a dashboard welcome heading', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.textContent).toContain('Dashboard');
+    expect(compiled.querySelector("[data-testid='dashboard-welcome']")).toBeTruthy();
+  });
+});

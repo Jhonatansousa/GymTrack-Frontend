@@ -230,13 +230,17 @@ Legacy Angular patterns will be rejected on review.
 
 > Akita's lesson: 21 of 274 commits (8%) in his project were security-focused — scattered across development, never a final "security sprint". His static scanner caught real issues: SQL injection, path traversal, open redirects. Apply the same discipline here.
 
-### 8.1 Authentication & JWT
+### 8.1 Authentication & Session (HttpOnly Cookies)
 
-- **Storage (MVP):** JWT in `localStorage`. **This is a known limitation** — documented trade-off for MVP speed. Production hardening: migrate to `HttpOnly; Secure; SameSite=Strict` cookies issued by the backend.
-- **NEVER log the JWT.** Not in `console.log`, not in error reports, not in analytics, not in Sentry-like tools.
-- **Always send as** `Authorization: Bearer <token>`. Never as a query parameter (leaks into server logs, `Referer` headers, browser history).
-- **Expiry check:** verify token expiry (`exp` claim) client-side before use; route to login on expiry.
-- **Logout:** always clear the token from storage AND any in-memory caches (services, signals, route data).
+**Architectural decision:** the JWT is issued and stored as an **`HttpOnly; Secure; SameSite` cookie** by the backend. The frontend never reads, writes, or stores the token in JS. This eliminates the XSS token-theft surface entirely.
+
+- **No token in JS.** No `localStorage`, no `sessionStorage`, no in-memory token cache, no `TokenService`. If you find yourself wanting one, stop — the cookie does it automatically.
+- **`withCredentials: true`** on every auth-related `HttpClient` call (and eventually on all API calls via an interceptor, once non-auth endpoints are wired).
+- **Backend owns the session.** Login/register responses set `Set-Cookie`. Logout must be a backend endpoint that clears the cookie (`Set-Cookie: ...; Max-Age=0`). The frontend cannot clear HttpOnly cookies directly.
+- **Session check:** on app init or protected route entry, call a `/auth/me` (or equivalent) endpoint. 200 → authenticated, 401 → redirect to login.
+- **CORS requirement:** backend must return `Access-Control-Allow-Credentials: true` with an explicit origin (not `*`). Mismatch = cookies silently dropped.
+- **CSRF:** with cookie-based auth, CSRF becomes a real threat. Backend must use `SameSite=Strict` (or `Lax` at minimum) AND accept a CSRF token on state-changing requests (Spring Security default pattern). Frontend echoes the CSRF token as configured.
+- **Never log auth-related headers or response bodies** that may carry session metadata.
 
 ### 8.2 XSS Prevention
 
@@ -441,9 +445,9 @@ Expected AI behavior:
 - **Authentication:** JWT, sent as `Authorization: Bearer <token>`.
 
 #### A. Authentication (`/auth`)
-- **`POST /auth/register`** — Accepts `{ name, email, password }`. Backend auto-authenticates on registration. The UI seamlessly stores the returned JWT and navigates to the main dashboard.
-- **`POST /auth/login`** — Accepts `{ email, password }`. Returns `{ results: { token: string } }`.
-- **Storage Rules:** MVP stores JWT in `localStorage`. *Production-grade ideal: `HttpOnly; Secure; SameSite=Strict` cookies.*
+- **`POST /auth/register`** — Accepts `{ name, email, password }`. Backend auto-authenticates on registration by issuing an HttpOnly session cookie. Frontend navigates to `/dashboard` on success.
+- **`POST /auth/login`** — Accepts `{ email, password }`. Backend issues an HttpOnly session cookie. Response body is treated as opaque by the frontend (typed `{ results: unknown }`).
+- **Storage Rules:** **HttpOnly cookies only.** No token storage in JS. All auth calls use `withCredentials: true`. See §8.1.
 
 #### B. Workout Divisions (`/divisions`)
 - **Operations:** Create (`name`), Read (list all), Update (rename), Delete.
@@ -460,4 +464,14 @@ Expected AI behavior:
 
 ### Hurdles Discovered During Development
 
-*[To be filled as the project grows. Format: problem → what we tried → what worked → why.]*
+#### H1 — Cross-origin HttpOnly cookies (dev environment)
+
+- **Problem:** In dev, frontend runs on `http://localhost:4200` and backend on `http://localhost:8080`. Browsers treat these as **same-site** but **different-origin**, so cookies require explicit credentials handling.
+- **Frontend side:**
+  - Every `HttpClient` call that needs the session cookie MUST pass `{ withCredentials: true }`.
+  - `AuthService.login` / `register` already do this. When wiring non-auth endpoints, either pass it explicitly per call or add a credentials interceptor (deferred to the interceptor work item).
+- **Backend side (Spring Security — for reference):**
+  - CORS config must allow the frontend origin explicitly (NOT `*`) and enable `allowCredentials = true`.
+  - Cookie must be set with `HttpOnly=true`, `Secure=true` (in prod), `SameSite=Lax` (dev) or `SameSite=None; Secure` (cross-site prod).
+  - CSRF filter must issue a readable CSRF cookie + expect a header echo on state-changing requests.
+- **Symptoms when misconfigured:** browser sends the request without the cookie, backend returns 401, `withCredentials` looks like it's "not working". The fix is always CORS + `Access-Control-Allow-Credentials: true` on the backend.

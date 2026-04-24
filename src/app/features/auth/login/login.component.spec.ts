@@ -1,14 +1,28 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
+import { of, throwError } from 'rxjs';
+import { MockInstance, vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  let loginSpy: ReturnType<typeof vi.fn>;
+  let navigateSpy: MockInstance<Router['navigate']>;
+
+  beforeEach(() => {
+    loginSpy = vi.fn(() => of({ results: {} }));
+
+    TestBed.configureTestingModule({
       imports: [LoginComponent],
-      providers: [provideRouter([])],
-    }).compileComponents();
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { login: loginSpy } },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
   });
 
   it('should start in Login mode', () => {
@@ -113,5 +127,71 @@ describe('LoginComponent', () => {
 
     expect(component.loginForm.invalid).toBeTruthy();
     expect(submitButton.disabled).toBe(true);
+  });
+
+  it('should call AuthService.login with form payload on valid submit', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(loginSpy).toHaveBeenCalledWith({
+      email: 'user@mail.com',
+      password: 'Valid@123',
+    });
+  });
+
+  it('should navigate to /dashboard on successful login', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('should not call AuthService.login when form is invalid', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('');
+    component.loginForm.controls.password.setValue('');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(loginSpy).not.toHaveBeenCalled();
+  });
+
+  it('should display an error message when login fails', () => {
+    loginSpy.mockImplementationOnce(() => throwError(() => new Error('401')));
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const errorElement = compiled.querySelector("[data-testid='login-error']");
+
+    expect(component.errorMessage()).toBeTruthy();
+    expect(errorElement).toBeTruthy();
+    expect(navigateSpy).not.toHaveBeenCalled();
   });
 });

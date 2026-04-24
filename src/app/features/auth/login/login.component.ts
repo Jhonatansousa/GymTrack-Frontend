@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +16,7 @@ import { RouterLink } from '@angular/router';
         Criar conta
       </button>
 
-      <form [formGroup]="loginForm" class="flex flex-col gap-3">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
         <input
           type="email"
           formControlName="email"
@@ -37,20 +39,30 @@ import { RouterLink } from '@angular/router';
 
         <button
           type="submit"
-          [disabled]="loginForm.invalid"
-          [class.opacity-50]="loginForm.invalid"
-          [class.cursor-not-allowed]="loginForm.invalid"
-          [class.bg-black]="loginForm.valid"
-          [class.text-white]="loginForm.valid"
+          [disabled]="loginForm.invalid || isSubmitting()"
+          [class.opacity-50]="loginForm.invalid || isSubmitting()"
+          [class.cursor-not-allowed]="loginForm.invalid || isSubmitting()"
+          [class.bg-black]="loginForm.valid && !isSubmitting()"
+          [class.text-white]="loginForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
           Entrar
         </button>
+
+        @if (errorMessage()) {
+          <p data-testid="login-error" class="text-sm text-red-600">{{ errorMessage() }}</p>
+        }
       </form>
     </section>
   `,
 })
 export class LoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly isSubmitting = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+
   readonly loginForm = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
@@ -61,4 +73,24 @@ export class LoginComponent {
       validators: [Validators.required],
     }),
   });
+
+  onSubmit(): void {
+    if (this.loginForm.invalid || this.isSubmitting()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    this.authService.login(this.loginForm.getRawValue()).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        void this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set('Falha ao autenticar. Verifique suas credenciais.');
+      },
+    });
+  }
 }

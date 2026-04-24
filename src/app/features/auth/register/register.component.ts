@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-type RegisterForm = {
+import { AuthService } from '../../../core/services/auth.service';
+
+interface RegisterForm {
   name: FormControl<string>;
   email: FormControl<string>;
   password: FormControl<string>;
-};
+}
 
 type RegisterControlName = keyof RegisterForm;
 type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
@@ -19,7 +21,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
     <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
       <h1 class="text-xl font-semibold">Register</h1>
 
-      <form [formGroup]="registerForm" class="flex flex-col gap-3">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
         <input type="text" formControlName="name" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('name', 'required')) {
           <p data-testid="name-error-required" class="text-sm text-red-600">Name is required.</p>
@@ -80,11 +82,11 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
 
         <button
           type="submit"
-          [disabled]="registerForm.invalid"
-          [class.opacity-50]="registerForm.invalid"
-          [class.cursor-not-allowed]="registerForm.invalid"
-          [class.bg-black]="registerForm.valid"
-          [class.text-white]="registerForm.valid"
+          [disabled]="registerForm.invalid || isSubmitting()"
+          [class.opacity-50]="registerForm.invalid || isSubmitting()"
+          [class.cursor-not-allowed]="registerForm.invalid || isSubmitting()"
+          [class.bg-black]="registerForm.valid && !isSubmitting()"
+          [class.text-white]="registerForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
           Register
@@ -93,16 +95,24 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         <button type="button" (click)="goToLogin()" class="self-start text-sm underline">
           Already a user?
         </button>
+
+        @if (errorMessage()) {
+          <p data-testid="register-error" class="text-sm text-red-600">{{ errorMessage() }}</p>
+        }
       </form>
     </section>
   `,
 })
 export class RegisterComponent {
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly uppercaseRegex = /[A-Z]/;
   private readonly lowercaseRegex = /[a-z]/;
   private readonly numberRegex = /\d/;
   private readonly specialCharRegex = /[^A-Za-z0-9]/;
+
+  readonly isSubmitting = signal(false);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly registerForm = new FormGroup<RegisterForm>({
     name: new FormControl('', {
@@ -126,6 +136,26 @@ export class RegisterComponent {
 
   goToLogin(): void {
     void this.router.navigate(['/auth']);
+  }
+
+  onSubmit(): void {
+    if (this.registerForm.invalid || this.isSubmitting()) {
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.errorMessage.set(null);
+
+    this.authService.register(this.registerForm.getRawValue()).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        void this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        this.isSubmitting.set(false);
+        this.errorMessage.set('Falha ao registrar. Tente novamente.');
+      },
+    });
   }
 
   shouldShowError(controlName: RegisterControlName, errorKey: string): boolean {

@@ -1,20 +1,32 @@
 import { FormControl } from '@angular/forms';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { vi } from 'vitest';
+import { of, throwError } from 'rxjs';
+import { MockInstance, vi } from 'vitest';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { RegisterComponent } from './register.component';
 
 describe('RegisterComponent', () => {
   let fixture: ReturnType<typeof TestBed.createComponent<RegisterComponent>>;
   let component: RegisterComponent;
   let compiled: HTMLElement;
+  let registerSpy: ReturnType<typeof vi.fn>;
+  let navigateSpy: MockInstance<Router['navigate']>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    registerSpy = vi.fn(() => of({ results: {} }));
+
+    TestBed.configureTestingModule({
       imports: [RegisterComponent],
-      providers: [provideRouter([])],
-    }).compileComponents();
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { register: registerSpy } },
+      ],
+    });
+
+    const router = TestBed.inject(Router);
+    navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(RegisterComponent);
     component = fixture.componentInstance;
@@ -45,6 +57,13 @@ describe('RegisterComponent', () => {
 
   function queryByTestId(testId: string): HTMLElement | null {
     return compiled.querySelector(`[data-testid='${testId}']`);
+  }
+
+  function fillValidForm(): void {
+    component.registerForm.controls.name.setValue('User Name');
+    component.registerForm.controls.email.setValue('user@mail.com');
+    component.registerForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
   }
 
   it('should create a form with name, email and password controls', () => {
@@ -114,10 +133,7 @@ describe('RegisterComponent', () => {
   });
 
   it('should enable submit button when all fields are filled', () => {
-    component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('user@mail.com');
-    component.registerForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
+    fillValidForm();
 
     const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
 
@@ -126,8 +142,6 @@ describe('RegisterComponent', () => {
   });
 
   it('should navigate to login page when clicking the back button', () => {
-    const router = TestBed.inject(Router);
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const backButton = compiled.querySelector("button[type='button']");
 
     expect(backButton).toBeTruthy();
@@ -268,5 +282,49 @@ describe('RegisterComponent', () => {
     expect(queryByTestId('password-error-lowercase')).toBeNull();
     expect(queryByTestId('password-error-number')).toBeNull();
     expect(queryByTestId('password-error-specialChar')).toBeNull();
+  });
+
+  it('should call AuthService.register with form payload on valid submit', () => {
+    fillValidForm();
+
+    component.onSubmit();
+
+    expect(registerSpy).toHaveBeenCalledWith({
+      name: 'User Name',
+      email: 'user@mail.com',
+      password: 'Valid@123',
+    });
+  });
+
+  it('should navigate to /dashboard on successful registration', () => {
+    fillValidForm();
+
+    component.onSubmit();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('should not call AuthService.register when form is invalid', () => {
+    component.registerForm.controls.name.setValue('');
+    component.registerForm.controls.email.setValue('');
+    component.registerForm.controls.password.setValue('');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(registerSpy).not.toHaveBeenCalled();
+  });
+
+  it('should display an error message when registration fails', () => {
+    registerSpy.mockImplementationOnce(() => throwError(() => new Error('409')));
+    fillValidForm();
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const errorElement = queryByTestId('register-error');
+
+    expect(component.errorMessage()).toBeTruthy();
+    expect(errorElement).toBeTruthy();
   });
 });
