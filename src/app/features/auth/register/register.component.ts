@@ -89,7 +89,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           [class.text-white]="registerForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
-          Register
+          @if (isSubmitting()) { Registrando... } @else { Register }
         </button>
 
         <button type="button" (click)="goToLogin()" class="self-start text-sm underline">

@@ -46,7 +46,7 @@ import { AuthService } from '../../../core/services/auth.service';
           [class.text-white]="loginForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
-          Entrar
+          @if (isSubmitting()) { Entrando... } @else { Entrar }
         </button>
 
         @if (errorMessage()) {
