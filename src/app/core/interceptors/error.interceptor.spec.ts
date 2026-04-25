@@ -31,11 +31,11 @@ describe('errorInterceptor', () => {
     httpTesting.verify();
   });
 
-  it('should redirect to /auth on 401 Unauthorized', () => {
+  it('should redirect to /auth replacing history on 401 Unauthorized', () => {
     http.get('/test').subscribe({ error: vi.fn() });
     httpTesting.expectOne('/test').flush({}, { status: 401, statusText: 'Unauthorized' });
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/auth'], { replaceUrl: true });
   });
 
   it('should propagate the error after redirecting on 401', () => {
@@ -54,6 +54,31 @@ describe('errorInterceptor', () => {
     expect(navigateSpy).not.toHaveBeenCalled();
   });
 
+  it('should propagate 403 errors', () => {
+    let receivedError: unknown;
+
+    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
+    httpTesting.expectOne('/test').flush({}, { status: 403, statusText: 'Forbidden' });
+
+    expect(receivedError).toBeTruthy();
+  });
+
+  it('should NOT redirect on 409 Conflict', () => {
+    http.get('/test').subscribe({ error: vi.fn() });
+    httpTesting.expectOne('/test').flush({}, { status: 409, statusText: 'Conflict' });
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should propagate 409 errors', () => {
+    let receivedError: unknown;
+
+    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
+    httpTesting.expectOne('/test').flush({}, { status: 409, statusText: 'Conflict' });
+
+    expect(receivedError).toBeTruthy();
+  });
+
   it('should NOT redirect on 5xx errors', () => {
     http.get('/test').subscribe({ error: vi.fn() });
     httpTesting.expectOne('/test').flush({}, { status: 500, statusText: 'Internal Server Error' });
@@ -61,7 +86,7 @@ describe('errorInterceptor', () => {
     expect(navigateSpy).not.toHaveBeenCalled();
   });
 
-  it('should propagate non-401 errors', () => {
+  it('should propagate 5xx errors', () => {
     let receivedError: unknown;
 
     http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
