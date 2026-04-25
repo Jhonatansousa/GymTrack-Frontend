@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -193,5 +193,51 @@ describe('LoginComponent', () => {
     expect(component.errorMessage()).toBeTruthy();
     expect(errorElement).toBeTruthy();
     expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should disable submit button while request is in flight', () => {
+    const subject = new Subject<{ results: unknown }>();
+    loginSpy.mockReturnValueOnce(subject.asObservable());
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector(
+      "button[type='submit']"
+    ) as HTMLButtonElement;
+    expect(submitButton.disabled).toBe(true);
+
+    subject.complete();
+  });
+
+  it('should show loading text in submit button while request is in flight', () => {
+    const subject = new Subject<{ results: unknown }>();
+    loginSpy.mockReturnValueOnce(subject.asObservable());
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const submitButton = fixture.nativeElement.querySelector(
+      "button[type='submit']"
+    ) as HTMLButtonElement;
+    expect(submitButton.textContent?.trim()).toBe('Entrando...');
+
+    subject.complete();
   });
 });

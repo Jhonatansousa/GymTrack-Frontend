@@ -1,7 +1,7 @@
 import { FormControl } from '@angular/forms';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -326,5 +326,37 @@ describe('RegisterComponent', () => {
 
     expect(component.errorMessage()).toBeTruthy();
     expect(errorElement).toBeTruthy();
+  });
+
+  it('should disable submit button while request is in flight', () => {
+    const subject = new Subject<{ results: unknown }>();
+    registerSpy.mockReturnValueOnce(subject.asObservable());
+
+    fillValidForm();
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const submitButton = compiled.querySelector(
+      "button[type='submit']"
+    ) as HTMLButtonElement;
+    expect(submitButton.disabled).toBe(true);
+
+    subject.complete();
+  });
+
+  it('should show loading text in submit button while request is in flight', () => {
+    const subject = new Subject<{ results: unknown }>();
+    registerSpy.mockReturnValueOnce(subject.asObservable());
+
+    fillValidForm();
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const submitButton = compiled.querySelector(
+      "button[type='submit']"
+    ) as HTMLButtonElement;
+    expect(submitButton.textContent?.trim()).toBe('Registrando...');
+
+    subject.complete();
   });
 });
