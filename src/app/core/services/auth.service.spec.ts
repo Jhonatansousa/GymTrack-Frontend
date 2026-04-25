@@ -23,7 +23,7 @@ describe('AuthService', () => {
     httpTesting.verify();
   });
 
-  it('should POST to /auth/login with credentials and withCredentials enabled', () => {
+  it('should POST to /auth/login with the provided credentials', () => {
     const payload: LoginRequest = { email: 'user@mail.com', password: 'Valid@123' };
 
     service.login(payload).subscribe();
@@ -31,12 +31,11 @@ describe('AuthService', () => {
     const req = httpTesting.expectOne(`${environment.apiBaseUrl}/auth/login`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
-    expect(req.request.withCredentials).toBe(true);
 
     req.flush({ results: {} });
   });
 
-  it('should POST to /auth/register with credentials and withCredentials enabled', () => {
+  it('should POST to /auth/register with the provided credentials', () => {
     const payload: RegisterRequest = {
       name: 'User Name',
       email: 'user@mail.com',
@@ -48,7 +47,6 @@ describe('AuthService', () => {
     const req = httpTesting.expectOne(`${environment.apiBaseUrl}/auth/register`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
-    expect(req.request.withCredentials).toBe(true);
 
     req.flush({ results: {} });
   });

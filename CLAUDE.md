@@ -260,14 +260,14 @@ Legacy Angular patterns will be rejected on review.
 ### 8.4 HTTP / Network
 
 - **HTTPS only in production.** `environment.ts` MUST use `https://`.
-- **Functional Interceptors** (`HttpInterceptorFn`) for:
-  - JWT injection
-  - Centralized error handling (401, 403, 409, 5xx)
-  - Request logging with JWT **redacted**
-- **401 Unauthorized:** clear token, redirect to login, do not retry silently.
-- **403 Forbidden:** show "access denied"; never expose backend internals in the UI.
-- **5xx:** generic user-facing message; full detail only in dev logs.
-- **Never swallow errors silently.**
+- **Two functional interceptors** (`HttpInterceptorFn`) registered in `app.config.ts`:
+  - `credentialsInterceptor` — adds `withCredentials: true` to every request that targets `environment.apiBaseUrl`. This is what makes the HttpOnly session cookie flow automatically. Never add `withCredentials` manually per-request.
+  - `errorInterceptor` — catches `HttpErrorResponse` and acts: 401 → redirect to `/auth`, all others → propagate.
+- **401 Unauthorized:** redirect to `/auth`. The session cookie is expired or missing — the backend owns the session. The frontend has nothing to clear.
+- **403 Forbidden:** propagate the error. The component decides how to surface it.
+- **5xx:** propagate the error. Show a generic user-facing message at the component level; never expose internals.
+- **Never swallow errors silently.** Every intercepted error must reach the caller via `throwError(() => error)`.
+- **Do NOT inject `Authorization: Bearer <token>`.** The project uses HttpOnly cookies (§8.1). There is no token in JS to inject. Any PR that adds Bearer header injection is a security regression.
 
 ### 8.5 Routing / Open Redirect
 

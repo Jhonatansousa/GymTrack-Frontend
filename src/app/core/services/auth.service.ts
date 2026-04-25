@@ -11,14 +11,10 @@ export class AuthService {
   private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
 
   register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, payload);
   }
 
   login(payload: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, payload, {
-      withCredentials: true,
-    });
+    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, payload);
   }
 }
