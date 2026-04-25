@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
@@ -193,6 +194,25 @@ describe('LoginComponent', () => {
     expect(component.errorMessage()).toBeTruthy();
     expect(errorElement).toBeTruthy();
     expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should display a specific message when login fails with 401', () => {
+    const error = new HttpErrorResponse({ status: 401 });
+    loginSpy.mockImplementationOnce(() => throwError(() => error));
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('user@mail.com');
+    component.loginForm.controls.password.setValue('WrongPass@1');
+    fixture.detectChanges();
+
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const errorElement = fixture.nativeElement.querySelector("[data-testid='login-error']");
+    expect(errorElement?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
   });
 
   it('should disable submit button while request is in flight', () => {

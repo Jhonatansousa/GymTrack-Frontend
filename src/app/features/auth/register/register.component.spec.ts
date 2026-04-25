@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -326,6 +327,18 @@ describe('RegisterComponent', () => {
 
     expect(component.errorMessage()).toBeTruthy();
     expect(errorElement).toBeTruthy();
+  });
+
+  it('should display a specific message when registration fails with 409', () => {
+    const error = new HttpErrorResponse({ status: 409 });
+    registerSpy.mockImplementationOnce(() => throwError(() => error));
+
+    fillValidForm();
+    component.onSubmit();
+    fixture.detectChanges();
+
+    const errorElement = queryByTestId('register-error');
+    expect(errorElement?.textContent?.trim()).toBe('Este email já está cadastrado.');
   });
 
   it('should disable submit button while request is in flight', () => {
