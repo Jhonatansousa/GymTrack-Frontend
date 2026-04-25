@@ -2,6 +2,8 @@
 
 > **Living Document.** This file evolves with the project. Every hurdle, architectural decision, and non-obvious constraint discovered during development belongs here. Always check this file BEFORE proposing solutions.
 
+> **Mandatory Reading.** At the start of every session, read [`README.md`](README.md) in full before taking any action. It is the authoritative source of current project state, implemented features, pending work, and API contracts. Never assume you know the project state from memory alone.
+
 ---
 
 ## 0. Core Philosophy — Inspired by Fabio Akita's M.Akita Chronicles

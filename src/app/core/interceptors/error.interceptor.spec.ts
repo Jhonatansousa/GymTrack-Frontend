@@ -1,4 +1,4 @@
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -29,69 +29,50 @@ describe('errorInterceptor', () => {
 
   afterEach(() => {
     httpTesting.verify();
+    vi.restoreAllMocks();
   });
 
-  it('should redirect to /auth replacing history on 401 Unauthorized', () => {
-    http.get('/test').subscribe({ error: vi.fn() });
+  it('should redirect to /auth with replaceUrl:true and propagate HttpErrorResponse on 401', () => {
+    let capturedError: unknown;
+
+    http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
     httpTesting.expectOne('/test').flush({}, { status: 401, statusText: 'Unauthorized' });
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/auth'], { replaceUrl: true });
+    expect(navigateSpy).toHaveBeenCalledExactlyOnceWith(['/auth'], { replaceUrl: true });
+    expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+    expect((capturedError as HttpErrorResponse).status).toBe(401);
   });
 
-  it('should propagate the error after redirecting on 401', () => {
-    let receivedError: unknown;
+  it('should propagate HttpErrorResponse on 403 without redirecting', () => {
+    let capturedError: unknown;
 
-    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
-    httpTesting.expectOne('/test').flush({}, { status: 401, statusText: 'Unauthorized' });
-
-    expect(receivedError).toBeTruthy();
-  });
-
-  it('should NOT redirect on 403 Forbidden', () => {
-    http.get('/test').subscribe({ error: vi.fn() });
+    http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
     httpTesting.expectOne('/test').flush({}, { status: 403, statusText: 'Forbidden' });
 
     expect(navigateSpy).not.toHaveBeenCalled();
+    expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+    expect((capturedError as HttpErrorResponse).status).toBe(403);
   });
 
-  it('should propagate 403 errors', () => {
-    let receivedError: unknown;
+  it('should propagate HttpErrorResponse on 409 without redirecting', () => {
+    let capturedError: unknown;
 
-    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
-    httpTesting.expectOne('/test').flush({}, { status: 403, statusText: 'Forbidden' });
-
-    expect(receivedError).toBeTruthy();
-  });
-
-  it('should NOT redirect on 409 Conflict', () => {
-    http.get('/test').subscribe({ error: vi.fn() });
+    http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
     httpTesting.expectOne('/test').flush({}, { status: 409, statusText: 'Conflict' });
 
     expect(navigateSpy).not.toHaveBeenCalled();
+    expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+    expect((capturedError as HttpErrorResponse).status).toBe(409);
   });
 
-  it('should propagate 409 errors', () => {
-    let receivedError: unknown;
+  it('should propagate HttpErrorResponse on 500 without redirecting', () => {
+    let capturedError: unknown;
 
-    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
-    httpTesting.expectOne('/test').flush({}, { status: 409, statusText: 'Conflict' });
-
-    expect(receivedError).toBeTruthy();
-  });
-
-  it('should NOT redirect on 5xx errors', () => {
-    http.get('/test').subscribe({ error: vi.fn() });
+    http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
     httpTesting.expectOne('/test').flush({}, { status: 500, statusText: 'Internal Server Error' });
 
     expect(navigateSpy).not.toHaveBeenCalled();
-  });
-
-  it('should propagate 5xx errors', () => {
-    let receivedError: unknown;
-
-    http.get('/test').subscribe({ error: (err) => { receivedError = err; } });
-    httpTesting.expectOne('/test').flush({}, { status: 500, statusText: 'Internal Server Error' });
-
-    expect(receivedError).toBeTruthy();
+    expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+    expect((capturedError as HttpErrorResponse).status).toBe(500);
   });
 });
