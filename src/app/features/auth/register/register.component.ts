@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -151,9 +152,13 @@ export class RegisterComponent {
         this.isSubmitting.set(false);
         void this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set('Falha ao registrar. Tente novamente.');
+        this.errorMessage.set(
+          err instanceof HttpErrorResponse && err.status === 409
+            ? 'Este email já está cadastrado.'
+            : 'Falha ao registrar. Tente novamente.',
+        );
       },
     });
   }

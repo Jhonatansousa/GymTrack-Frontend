@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -87,9 +88,13 @@ export class LoginComponent {
         this.isSubmitting.set(false);
         void this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set('Falha ao autenticar. Verifique suas credenciais.');
+        this.errorMessage.set(
+          err instanceof HttpErrorResponse && err.status === 401
+            ? 'Credenciais inválidas. Verifique seu email e senha.'
+            : 'Falha ao autenticar. Verifique suas credenciais.',
+        );
       },
     });
   }
