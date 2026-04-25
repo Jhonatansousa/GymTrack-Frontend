@@ -50,4 +50,14 @@ describe('AuthService', () => {
 
     req.flush({ results: {} });
   });
+
+  it('should GET /auth/me to check the current session', () => {
+    service.checkSession().subscribe();
+
+    const req = httpTesting.expectOne(`${environment.apiBaseUrl}/auth/me`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ results: {} });
+  });
+
+  
 });
