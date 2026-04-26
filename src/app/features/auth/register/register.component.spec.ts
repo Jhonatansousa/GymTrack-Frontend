@@ -8,6 +8,8 @@ import { MockInstance, vi } from 'vitest';
 import { AuthService } from '../../../core/services/auth.service';
 import { RegisterComponent } from './register.component';
 
+type RegisterControlKey = keyof RegisterComponent['registerForm']['controls'];
+
 describe('RegisterComponent', () => {
   let fixture: ReturnType<typeof TestBed.createComponent<RegisterComponent>>;
   let component: RegisterComponent;
@@ -35,13 +37,13 @@ describe('RegisterComponent', () => {
     fixture.detectChanges();
   });
 
-  function control<K extends keyof RegisterComponent['registerForm']['controls']>(
+  function control<K extends RegisterControlKey>(
     key: K
   ): RegisterComponent['registerForm']['controls'][K] {
     return component.registerForm.controls[key];
   }
 
-  function setControlValue<K extends keyof RegisterComponent['registerForm']['controls']>(
+  function setControlValue<K extends RegisterControlKey>(
     key: K,
     value: string,
     touched = true
@@ -56,436 +58,412 @@ describe('RegisterComponent', () => {
     fixture.detectChanges();
   }
 
+  function fillForm(values: Partial<Record<RegisterControlKey, string>> = {}): void {
+    const merged = { name: 'User Name', email: 'user@mail.com', password: 'Valid@123', ...values };
+    component.registerForm.controls.name.setValue(merged.name);
+    component.registerForm.controls.email.setValue(merged.email);
+    component.registerForm.controls.password.setValue(merged.password);
+    fixture.detectChanges();
+  }
+
+  function inputByName(name: RegisterControlKey): HTMLInputElement | null {
+    return compiled.querySelector(`input[formControlName='${name}']`);
+  }
+
+  function inputById(name: RegisterControlKey): HTMLInputElement | null {
+    return compiled.querySelector(`input#register-${name}`);
+  }
+
+  function submitButton(): HTMLButtonElement {
+    return compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+  }
+
+  function backButton(): HTMLButtonElement | null {
+    return compiled.querySelector("button[type='button']");
+  }
+
   function queryByTestId(testId: string): HTMLElement | null {
     return compiled.querySelector(`[data-testid='${testId}']`);
   }
 
-  function fillValidForm(): void {
-    component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('user@mail.com');
-    component.registerForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
+  function mockRegisterError(error: unknown): void {
+    registerSpy.mockImplementationOnce(() => throwError(() => error));
   }
 
-  it('should create a form with name, email and password controls', () => {
-    expect(component.registerForm).toBeTruthy();
-    expect(component.registerForm.contains('name')).toBeTruthy();
-    expect(component.registerForm.contains('email')).toBeTruthy();
-    expect(component.registerForm.contains('password')).toBeTruthy();
-  });
+  function mockRegisterInFlight(): Subject<{ results: unknown }> {
+    const subject = new Subject<{ results: unknown }>();
+    registerSpy.mockReturnValueOnce(subject.asObservable());
+    return subject;
+  }
 
-  it('should render name, email and password inputs with correct types', () => {
-    const nameInput = compiled.querySelector("input[formControlName='name']");
-    const emailInput = compiled.querySelector("input[formControlName='email']");
-    const passwordInput = compiled.querySelector("input[formControlName='password']");
+  describe('form structure', () => {
+    it('should create a form with name, email and password controls', () => {
+      expect(component.registerForm).toBeTruthy();
+      expect(component.registerForm.contains('name')).toBeTruthy();
+      expect(component.registerForm.contains('email')).toBeTruthy();
+      expect(component.registerForm.contains('password')).toBeTruthy();
+    });
 
-    expect(nameInput).toBeTruthy();
-    expect(emailInput).toBeTruthy();
-    expect(passwordInput).toBeTruthy();
-    expect(nameInput?.getAttribute('type')).toBe('text');
-    expect(emailInput?.getAttribute('type')).toBe('email');
-    expect(passwordInput?.getAttribute('type')).toBe('password');
-  });
+    it('should render name, email and password inputs with correct types', () => {
+      expect(inputByName('name')).toBeTruthy();
+      expect(inputByName('email')).toBeTruthy();
+      expect(inputByName('password')).toBeTruthy();
+      expect(inputByName('name')?.getAttribute('type')).toBe('text');
+      expect(inputByName('email')?.getAttribute('type')).toBe('email');
+      expect(inputByName('password')?.getAttribute('type')).toBe('password');
+    });
 
-  it('should have a label associated with the name input', () => {
-    const label = compiled.querySelector("label[for='register-name']");
-    const input = compiled.querySelector("input#register-name");
+    it('should have a label associated with the name input', () => {
+      expect(compiled.querySelector("label[for='register-name']")).toBeTruthy();
+      expect(inputById('name')).toBeTruthy();
+    });
 
-    expect(label).toBeTruthy();
-    expect(input).toBeTruthy();
-  });
+    it('should have a label associated with the email input', () => {
+      expect(compiled.querySelector("label[for='register-email']")).toBeTruthy();
+      expect(inputById('email')).toBeTruthy();
+    });
 
-  it('should have a label associated with the email input', () => {
-    const label = compiled.querySelector("label[for='register-email']");
-    const input = compiled.querySelector("input#register-email");
+    it('should have a label associated with the password input', () => {
+      expect(compiled.querySelector("label[for='register-password']")).toBeTruthy();
+      expect(inputById('password')).toBeTruthy();
+    });
 
-    expect(label).toBeTruthy();
-    expect(input).toBeTruthy();
-  });
-
-  it('should have a label associated with the password input', () => {
-    const label = compiled.querySelector("label[for='register-password']");
-    const input = compiled.querySelector("input#register-password");
-
-    expect(label).toBeTruthy();
-    expect(input).toBeTruthy();
+    it('should render a submit button labeled Register and a back button labeled Already a user?', () => {
+      expect(submitButton()).toBeTruthy();
+      expect(submitButton().textContent).toContain('Register');
+      expect(backButton()).toBeTruthy();
+      expect(backButton()?.textContent).toContain('Already a user?');
+    });
   });
 
   describe('aria accessibility', () => {
     it('should set aria-invalid="true" on name input when invalid and touched', () => {
       setControlValue('name', '');
-      const input = compiled.querySelector("input#register-name");
-      expect(input?.getAttribute('aria-invalid')).toBe('true');
+      expect(inputById('name')?.getAttribute('aria-invalid')).toBe('true');
     });
 
     it('should not set aria-invalid on name input when valid and touched', () => {
       setControlValue('name', 'John');
-      const input = compiled.querySelector("input#register-name");
-      expect(input?.getAttribute('aria-invalid')).toBeNull();
+      expect(inputById('name')?.getAttribute('aria-invalid')).toBeNull();
     });
 
     it('should have aria-describedby pointing to name error container on name input', () => {
-      const input = compiled.querySelector("input#register-name");
-      expect(input?.getAttribute('aria-describedby')).toBe('register-name-errors');
+      expect(inputById('name')?.getAttribute('aria-describedby')).toBe('register-name-errors');
     });
 
     it('should set aria-invalid="true" on email input when invalid and touched', () => {
       setControlValue('email', '');
-      const input = compiled.querySelector("input#register-email");
-      expect(input?.getAttribute('aria-invalid')).toBe('true');
+      expect(inputById('email')?.getAttribute('aria-invalid')).toBe('true');
     });
 
     it('should not set aria-invalid on email input when valid and touched', () => {
       setControlValue('email', 'user@mail.com');
-      const input = compiled.querySelector("input#register-email");
-      expect(input?.getAttribute('aria-invalid')).toBeNull();
+      expect(inputById('email')?.getAttribute('aria-invalid')).toBeNull();
     });
 
     it('should have aria-describedby pointing to email error container on email input', () => {
-      const input = compiled.querySelector("input#register-email");
-      expect(input?.getAttribute('aria-describedby')).toBe('register-email-errors');
+      expect(inputById('email')?.getAttribute('aria-describedby')).toBe('register-email-errors');
     });
 
     it('should set aria-invalid="true" on password input when invalid and touched', () => {
       setControlValue('password', '');
-      const input = compiled.querySelector("input#register-password");
-      expect(input?.getAttribute('aria-invalid')).toBe('true');
+      expect(inputById('password')?.getAttribute('aria-invalid')).toBe('true');
     });
 
     it('should not set aria-invalid on password input when valid and touched', () => {
       setControlValue('password', 'Valid@123');
-      const input = compiled.querySelector("input#register-password");
-      expect(input?.getAttribute('aria-invalid')).toBeNull();
+      expect(inputById('password')?.getAttribute('aria-invalid')).toBeNull();
     });
 
     it('should have aria-describedby pointing to password error container on password input', () => {
-      const input = compiled.querySelector("input#register-password");
-      expect(input?.getAttribute('aria-describedby')).toBe('register-password-errors');
+      expect(inputById('password')?.getAttribute('aria-describedby')).toBe('register-password-errors');
     });
   });
 
-  it('should render a submit button labeled Register and a back button labeled Already a user?', () => {
-    const submitButton = compiled.querySelector("button[type='submit']");
-    const backButton = compiled.querySelector("button[type='button']");
+  describe('submit button state', () => {
+    it('should disable submit button when name is empty', () => {
+      fillForm({ name: '' });
 
-    expect(submitButton).toBeTruthy();
-    expect(submitButton?.textContent).toContain('Register');
-    expect(backButton).toBeTruthy();
-    expect(backButton?.textContent).toContain('Already a user?');
+      expect(component.registerForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should disable submit button when email is empty', () => {
+      fillForm({ email: '' });
+
+      expect(component.registerForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should disable submit button when password is empty', () => {
+      fillForm({ password: '' });
+
+      expect(component.registerForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should enable submit button when all fields are filled', () => {
+      fillForm();
+
+      expect(component.registerForm.valid).toBeTruthy();
+      expect(submitButton().disabled).toBe(false);
+    });
+
+    it('should disable submit button while request is in flight', () => {
+      const subject = mockRegisterInFlight();
+
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().disabled).toBe(true);
+
+      subject.complete();
+    });
+
+    it('should show loading text in submit button while request is in flight', () => {
+      const subject = mockRegisterInFlight();
+
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().textContent?.trim()).toBe('Registrando...');
+
+      subject.complete();
+    });
   });
 
-  it('should disable submit button when name is empty', () => {
-    component.registerForm.controls.name.setValue('');
-    component.registerForm.controls.email.setValue('user@mail.com');
-    component.registerForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
+  describe('navigation', () => {
+    it('should navigate to login page when clicking the back button', () => {
+      const back = backButton();
+      expect(back).toBeTruthy();
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+      back?.dispatchEvent(new MouseEvent('click'));
 
-    expect(component.registerForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
+      expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
+    });
   });
 
-  it('should disable submit button when email is empty', () => {
-    component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('');
-    component.registerForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
+  describe('validation errors (touched)', () => {
+    it('should display an error message when the name field is empty and touched', () => {
+      setControlValue('name', '');
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+      expect(control('name').hasError('required')).toBeTruthy();
+      expect(queryByTestId('name-error-required')).toBeTruthy();
+    });
 
-    expect(component.registerForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
+    it('should display an error message when the email field is empty and touched', () => {
+      setControlValue('email', '');
+
+      expect(control('email').hasError('required')).toBeTruthy();
+      expect(queryByTestId('email-error-required')).toBeTruthy();
+    });
+
+    it('should display an error message when the password field is empty and touched', () => {
+      setControlValue('password', '');
+
+      expect(control('password').hasError('required')).toBeTruthy();
+      expect(queryByTestId('password-error-required')).toBeTruthy();
+    });
+
+    it('should display an error message when the email field has an invalid format and is touched', () => {
+      setControlValue('email', 'invalid-email');
+
+      expect(control('email').hasError('email')).toBeTruthy();
+      expect(queryByTestId('email-error-format')).toBeTruthy();
+    });
+
+    it('should display an error message when the password is shorter than 8 characters and touched', () => {
+      setControlValue('password', 'Ab1@x');
+
+      expect(control('password').hasError('minlength')).toBeTruthy();
+      expect(queryByTestId('password-error-minlength')).toBeTruthy();
+    });
+
+    it('should display an uppercase error message when the password has no uppercase letter and is touched', () => {
+      setControlValue('password', 'valid@123');
+
+      expect(control('password').hasError('pattern')).toBeTruthy();
+      expect(queryByTestId('password-error-uppercase')).toBeTruthy();
+    });
+
+    it('should display a lowercase error message when the password has no lowercase letter and is touched', () => {
+      setControlValue('password', 'VALID@123');
+
+      expect(control('password').hasError('pattern')).toBeTruthy();
+      expect(queryByTestId('password-error-lowercase')).toBeTruthy();
+    });
+
+    it('should display a number error message when the password has no number and is touched', () => {
+      setControlValue('password', 'Valid@Password');
+
+      expect(control('password').hasError('pattern')).toBeTruthy();
+      expect(queryByTestId('password-error-number')).toBeTruthy();
+    });
+
+    it('should display a specialChar error message when the password has no special character and is touched', () => {
+      setControlValue('password', 'Valid1234');
+
+      expect(control('password').hasError('pattern')).toBeTruthy();
+      expect(queryByTestId('password-error-specialChar')).toBeTruthy();
+    });
+
+    it('should display an error message when the name is shorter than 2 characters and is touched', () => {
+      setControlValue('name', 'A');
+
+      expect(control('name').hasError('minlength')).toBeTruthy();
+      expect(queryByTestId('name-error-minlength')).toBeTruthy();
+    });
+
+    it('should NOT display a name minlength error when name has 2 or more characters', () => {
+      setControlValue('name', 'Al');
+
+      expect(control('name').hasError('minlength')).toBeFalsy();
+      expect(queryByTestId('name-error-minlength')).toBeNull();
+    });
+
+    it('should display an error message when the name exceeds 100 characters and is touched', () => {
+      setControlValue('name', 'a'.repeat(101));
+
+      expect(control('name').hasError('maxlength')).toBeTruthy();
+      expect(queryByTestId('name-error-maxlength')).toBeTruthy();
+    });
+
+    it('should display an error message when the email exceeds 254 characters and is touched', () => {
+      setControlValue('email', `${'a'.repeat(250)}@a.com`);
+
+      expect(control('email').hasError('maxlength')).toBeTruthy();
+      expect(queryByTestId('email-error-maxlength')).toBeTruthy();
+    });
+
+    it('should display an error message when the password exceeds 128 characters and is touched', () => {
+      setControlValue('password', 'a'.repeat(129));
+
+      expect(control('password').hasError('maxlength')).toBeTruthy();
+      expect(queryByTestId('password-error-maxlength')).toBeTruthy();
+    });
   });
 
-  it('should disable submit button when password is empty', () => {
-    component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('user@mail.com');
-    component.registerForm.controls.password.setValue('');
-    fixture.detectChanges();
+  describe('error suppression (untouched / valid)', () => {
+    it('should NOT display a name required error when name is invalid but untouched', () => {
+      setControlValue('name', '', false);
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+      expect(control('name').invalid).toBeTruthy();
+      expect(control('name').touched).toBe(false);
+      expect(queryByTestId('name-error-required')).toBeNull();
+    });
 
-    expect(component.registerForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
+    it('should NOT display an email format error when email is invalid but untouched', () => {
+      setControlValue('email', 'invalid-email', false);
+
+      expect(control('email').invalid).toBeTruthy();
+      expect(control('email').touched).toBe(false);
+      expect(queryByTestId('email-error-format')).toBeNull();
+    });
+
+    it('should NOT display a password minlength error when password is invalid but untouched', () => {
+      setControlValue('password', 'abc', false);
+
+      expect(control('password').invalid).toBeTruthy();
+      expect(control('password').touched).toBe(false);
+      expect(queryByTestId('password-error-minlength')).toBeNull();
+    });
+
+    it('should NOT display a name required error when name is valid and touched', () => {
+      setControlValue('name', 'John Doe');
+
+      expect(control('name').valid).toBeTruthy();
+      expect(queryByTestId('name-error-required')).toBeNull();
+    });
+
+    it('should NOT display an email format error when email is valid and touched', () => {
+      setControlValue('email', 'user@mail.com');
+
+      expect(control('email').valid).toBeTruthy();
+      expect(queryByTestId('email-error-format')).toBeNull();
+    });
+
+    it('should NOT display a password rule error when password is valid and touched', () => {
+      setControlValue('password', 'Valid@123');
+
+      expect(control('password').valid).toBeTruthy();
+      expect(queryByTestId('password-error-minlength')).toBeNull();
+      expect(queryByTestId('password-error-uppercase')).toBeNull();
+      expect(queryByTestId('password-error-lowercase')).toBeNull();
+      expect(queryByTestId('password-error-number')).toBeNull();
+      expect(queryByTestId('password-error-specialChar')).toBeNull();
+    });
   });
 
-  it('should enable submit button when all fields are filled', () => {
-    fillValidForm();
-
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
-
-    expect(component.registerForm.valid).toBeTruthy();
-    expect(submitButton.disabled).toBe(false);
-  });
-
-  it('should navigate to login page when clicking the back button', () => {
-    const backButton = compiled.querySelector("button[type='button']");
-
-    expect(backButton).toBeTruthy();
-
-    backButton?.dispatchEvent(new MouseEvent('click'));
-
-    expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
-  });
-
-  it('should display an error message when the name field is empty and touched', () => {
-    setControlValue('name', '');
-
-    expect(control('name').hasError('required')).toBeTruthy();
-    expect(queryByTestId('name-error-required')).toBeTruthy();
-  });
-
-  it('should display an error message when the email field is empty and touched', () => {
-    setControlValue('email', '');
-
-    expect(control('email').hasError('required')).toBeTruthy();
-    expect(queryByTestId('email-error-required')).toBeTruthy();
-  });
-
-  it('should display an error message when the password field is empty and touched', () => {
-    setControlValue('password', '');
-
-    expect(control('password').hasError('required')).toBeTruthy();
-    expect(queryByTestId('password-error-required')).toBeTruthy();
-  });
-
-  it('should display an error message when the email field has an invalid format and is touched', () => {
-    setControlValue('email', 'invalid-email');
-
-    expect(control('email').hasError('email')).toBeTruthy();
-    expect(queryByTestId('email-error-format')).toBeTruthy();
-  });
-
-  it('should display an error message when the password is shorter than 8 characters and touched', () => {
-    setControlValue('password', 'Ab1@x');
-
-    expect(control('password').hasError('minlength')).toBeTruthy();
-    expect(queryByTestId('password-error-minlength')).toBeTruthy();
-  });
-
-  it('should display an uppercase error message when the password has no uppercase letter and is touched', () => {
-    setControlValue('password', 'valid@123');
-
-    expect(control('password').hasError('pattern')).toBeTruthy();
-    expect(queryByTestId('password-error-uppercase')).toBeTruthy();
-  });
-
-  it('should display a lowercase error message when the password has no lowercase letter and is touched', () => {
-    setControlValue('password', 'VALID@123');
-
-    expect(control('password').hasError('pattern')).toBeTruthy();
-    expect(queryByTestId('password-error-lowercase')).toBeTruthy();
-  });
-
-  it('should display a number error message when the password has no number and is touched', () => {
-    setControlValue('password', 'Valid@Password');
-
-    expect(control('password').hasError('pattern')).toBeTruthy();
-    expect(queryByTestId('password-error-number')).toBeTruthy();
-  });
-
-  it('should display a specialChar error message when the password has no special character and is touched', () => {
-    setControlValue('password', 'Valid1234');
-
-    expect(control('password').hasError('pattern')).toBeTruthy();
-    expect(queryByTestId('password-error-specialChar')).toBeTruthy();
-  });
-
-  it('should display an error message when the name is shorter than 2 characters and is touched', () => {
-    setControlValue('name', 'A');
-
-    expect(control('name').hasError('minlength')).toBeTruthy();
-    expect(queryByTestId('name-error-minlength')).toBeTruthy();
-  });
-
-  it('should NOT display a name minlength error when name has 2 or more characters', () => {
-    setControlValue('name', 'Al');
-
-    expect(control('name').hasError('minlength')).toBeFalsy();
-    expect(queryByTestId('name-error-minlength')).toBeNull();
-  });
-
-  it('should display an error message when the name exceeds 100 characters and is touched', () => {
-    setControlValue('name', 'a'.repeat(101));
-
-    expect(control('name').hasError('maxlength')).toBeTruthy();
-    expect(queryByTestId('name-error-maxlength')).toBeTruthy();
-  });
-
-  it('should display an error message when the email exceeds 254 characters and is touched', () => {
-    setControlValue('email', `${'a'.repeat(250)}@a.com`);
-
-    expect(control('email').hasError('maxlength')).toBeTruthy();
-    expect(queryByTestId('email-error-maxlength')).toBeTruthy();
-  });
-
-  it('should display an error message when the password exceeds 128 characters and is touched', () => {
-    setControlValue('password', 'a'.repeat(129));
-
-    expect(control('password').hasError('maxlength')).toBeTruthy();
-    expect(queryByTestId('password-error-maxlength')).toBeTruthy();
-  });
-
-  it('should NOT display a name required error when name is invalid but untouched', () => {
-    setControlValue('name', '', false);
-
-    expect(control('name').invalid).toBeTruthy();
-    expect(control('name').touched).toBe(false);
-    expect(queryByTestId('name-error-required')).toBeNull();
-  });
-
-  it('should NOT display an email format error when email is invalid but untouched', () => {
-    setControlValue('email', 'invalid-email', false);
-
-    expect(control('email').invalid).toBeTruthy();
-    expect(control('email').touched).toBe(false);
-    expect(queryByTestId('email-error-format')).toBeNull();
-  });
-
-  it('should NOT display a password minlength error when password is invalid but untouched', () => {
-    setControlValue('password', 'abc', false);
-
-    expect(control('password').invalid).toBeTruthy();
-    expect(control('password').touched).toBe(false);
-    expect(queryByTestId('password-error-minlength')).toBeNull();
-  });
-
-  it('should NOT display a name required error when name is valid and touched', () => {
-    setControlValue('name', 'John Doe');
-
-    expect(control('name').valid).toBeTruthy();
-    expect(queryByTestId('name-error-required')).toBeNull();
-  });
-
-  it('should NOT display an email format error when email is valid and touched', () => {
-    setControlValue('email', 'user@mail.com');
-
-    expect(control('email').valid).toBeTruthy();
-    expect(queryByTestId('email-error-format')).toBeNull();
-  });
-
-  it('should NOT display a password rule error when password is valid and touched', () => {
-    setControlValue('password', 'Valid@123');
-
-    expect(control('password').valid).toBeTruthy();
-    expect(queryByTestId('password-error-minlength')).toBeNull();
-    expect(queryByTestId('password-error-uppercase')).toBeNull();
-    expect(queryByTestId('password-error-lowercase')).toBeNull();
-    expect(queryByTestId('password-error-number')).toBeNull();
-    expect(queryByTestId('password-error-specialChar')).toBeNull();
-  });
-
-  it('should call AuthService.register with lowercased email', () => {
-    component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('USER@Mail.COM');
-    component.registerForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(registerSpy).toHaveBeenCalledWith({
+  describe('form submission', () => {
+    const expectedPayload = {
       name: 'User Name',
       email: 'user@mail.com',
       password: 'Valid@123',
+    };
+
+    it('should call AuthService.register with lowercased email', () => {
+      fillForm({ email: 'USER@Mail.COM' });
+
+      component.onSubmit();
+
+      expect(registerSpy).toHaveBeenCalledWith(expectedPayload);
+    });
+
+    it('should call AuthService.register with form payload on valid submit', () => {
+      fillForm();
+
+      component.onSubmit();
+
+      expect(registerSpy).toHaveBeenCalledWith(expectedPayload);
+    });
+
+    it('should navigate to /dashboard on successful registration', () => {
+      fillForm();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
+
+    it('should not call AuthService.register when form is invalid', () => {
+      fillForm({ name: '', email: '', password: '' });
+
+      component.onSubmit();
+
+      expect(registerSpy).not.toHaveBeenCalled();
+    });
+
+    it('should display an error message when registration fails', () => {
+      mockRegisterError(new Error('409'));
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.errorMessage()).toBeTruthy();
+      expect(queryByTestId('register-error')).toBeTruthy();
+    });
+
+    it('should display a specific message when registration fails with 409', () => {
+      mockRegisterError(new HttpErrorResponse({ status: 409 }));
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(queryByTestId('register-error')?.textContent?.trim()).toBe('Este email já está cadastrado.');
     });
   });
 
-  it('should call AuthService.register with form payload on valid submit', () => {
-    fillValidForm();
-
-    component.onSubmit();
-
-    expect(registerSpy).toHaveBeenCalledWith({
-      name: 'User Name',
-      email: 'user@mail.com',
-      password: 'Valid@123',
+  describe('autocomplete', () => {
+    it('should have autocomplete="email" on the email input', () => {
+      expect(inputByName('email')?.getAttribute('autocomplete')).toBe('email');
     });
-  });
 
-  it('should navigate to /dashboard on successful registration', () => {
-    fillValidForm();
-
-    component.onSubmit();
-
-    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
-  });
-
-  it('should not call AuthService.register when form is invalid', () => {
-    component.registerForm.controls.name.setValue('');
-    component.registerForm.controls.email.setValue('');
-    component.registerForm.controls.password.setValue('');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(registerSpy).not.toHaveBeenCalled();
-  });
-
-  it('should display an error message when registration fails', () => {
-    registerSpy.mockImplementationOnce(() => throwError(() => new Error('409')));
-    fillValidForm();
-
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const errorElement = queryByTestId('register-error');
-
-    expect(component.errorMessage()).toBeTruthy();
-    expect(errorElement).toBeTruthy();
-  });
-
-  it('should display a specific message when registration fails with 409', () => {
-    const error = new HttpErrorResponse({ status: 409 });
-    registerSpy.mockImplementationOnce(() => throwError(() => error));
-
-    fillValidForm();
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const errorElement = queryByTestId('register-error');
-    expect(errorElement?.textContent?.trim()).toBe('Este email já está cadastrado.');
-  });
-
-  it('should have autocomplete="email" on the email input', () => {
-    const emailInput = compiled.querySelector("input[formControlName='email']");
-    expect(emailInput?.getAttribute('autocomplete')).toBe('email');
-  });
-
-  it('should have autocomplete="new-password" on the password input', () => {
-    const passwordInput = compiled.querySelector("input[formControlName='password']");
-    expect(passwordInput?.getAttribute('autocomplete')).toBe('new-password');
-  });
-
-  it('should disable submit button while request is in flight', () => {
-    const subject = new Subject<{ results: unknown }>();
-    registerSpy.mockReturnValueOnce(subject.asObservable());
-
-    fillValidForm();
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const submitButton = compiled.querySelector(
-      "button[type='submit']"
-    ) as HTMLButtonElement;
-    expect(submitButton.disabled).toBe(true);
-
-    subject.complete();
-  });
-
-  it('should show loading text in submit button while request is in flight', () => {
-    const subject = new Subject<{ results: unknown }>();
-    registerSpy.mockReturnValueOnce(subject.asObservable());
-
-    fillValidForm();
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const submitButton = compiled.querySelector(
-      "button[type='submit']"
-    ) as HTMLButtonElement;
-    expect(submitButton.textContent?.trim()).toBe('Registrando...');
-
-    subject.complete();
+    it('should have autocomplete="new-password" on the password input', () => {
+      expect(inputByName('password')?.getAttribute('autocomplete')).toBe('new-password');
+    });
   });
 });
