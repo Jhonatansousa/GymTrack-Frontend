@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -60,6 +60,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -75,6 +76,11 @@ export class LoginComponent {
     }),
   });
 
+  private isSafeReturnUrl(url: string | null): boolean {
+    if (!url) return false;
+    return !url.startsWith('http') && !url.startsWith('//');
+  }
+
   onSubmit(): void {
     if (this.loginForm.invalid || this.isSubmitting()) {
       return;
@@ -86,7 +92,9 @@ export class LoginComponent {
     this.authService.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        void this.router.navigate(['/dashboard']);
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        const destination = this.isSafeReturnUrl(returnUrl) ? returnUrl! : '/dashboard';
+        void this.router.navigate([destination]);
       },
       error: (err) => {
         this.isSubmitting.set(false);

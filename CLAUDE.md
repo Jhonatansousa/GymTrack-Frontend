@@ -477,3 +477,21 @@ Expected AI behavior:
   - Cookie must be set with `HttpOnly=true`, `Secure=true` (in prod), `SameSite=Lax` (dev) or `SameSite=None; Secure` (cross-site prod).
   - CSRF filter must issue a readable CSRF cookie + expect a header echo on state-changing requests.
 - **Symptoms when misconfigured:** browser sends the request without the cookie, backend returns 401, `withCredentials` looks like it's "not working". The fix is always CORS + `Access-Control-Allow-Credentials: true` on the backend.
+
+#### H2 — `TestBed.overrideProvider` fails after `TestBed.inject()` in `beforeEach`
+
+- **Problem:** Calling `TestBed.inject(Router)` in `beforeEach` instantiates the testing module immediately. Any subsequent `TestBed.overrideProvider(...)` call inside a test body throws: *"Cannot override provider when the test module has already been instantiated."*
+- **Wrong pattern:** calling `overrideProvider` inside `it()` blocks after the module is already live.
+- **Correct pattern:** declare a **mutable mock object** and register it via `{ provide: Token, useValue: mockObject }` in `configureTestingModule`. Mutate the object's properties inside each test before `createComponent` — Angular reads the current state of the object at injection time.
+  ```ts
+  let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
+  beforeEach(() => {
+    activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}) } };
+    TestBed.configureTestingModule({ providers: [{ provide: ActivatedRoute, useValue: activatedRouteMock }] });
+  });
+  it('specific case', () => {
+    activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: '/divisions' });
+    const fixture = TestBed.createComponent(MyComponent); // reads updated mock
+  });
+  ```
+- **Applies to:** any provider that needs per-test variation — `ActivatedRoute`, feature flags, config tokens, etc.
