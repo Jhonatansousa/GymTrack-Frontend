@@ -133,6 +133,23 @@ describe('LoginComponent', () => {
     expect(submitButton.disabled).toBe(true);
   });
 
+  it('should call AuthService.login with trimmed and lowercased email', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.controls.email.setValue('  USER@Mail.COM  ');
+    component.loginForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(loginSpy).toHaveBeenCalledWith({
+      email: 'user@mail.com',
+      password: 'Valid@123',
+    });
+  });
+
   it('should call AuthService.login with form payload on valid submit', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;

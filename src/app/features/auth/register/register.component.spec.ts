@@ -299,6 +299,21 @@ describe('RegisterComponent', () => {
     expect(queryByTestId('password-error-specialChar')).toBeNull();
   });
 
+  it('should call AuthService.register with trimmed and lowercased email', () => {
+    component.registerForm.controls.name.setValue('User Name');
+    component.registerForm.controls.email.setValue('  USER@Mail.COM  ');
+    component.registerForm.controls.password.setValue('Valid@123');
+    fixture.detectChanges();
+
+    component.onSubmit();
+
+    expect(registerSpy).toHaveBeenCalledWith({
+      name: 'User Name',
+      email: 'user@mail.com',
+      password: 'Valid@123',
+    });
+  });
+
   it('should call AuthService.register with form payload on valid submit', () => {
     fillValidForm();
 
