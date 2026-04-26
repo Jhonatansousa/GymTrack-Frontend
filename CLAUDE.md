@@ -226,6 +226,21 @@ Legacy Angular patterns will be rejected on review.
 - Target test/code ratio: **≥ 1.3x** (lines of test ≥ 1.3 × lines of code).
 - Tests must pass in isolation (no ordering dependencies, no flakiness).
 
+### 7.1 Spec File Guidelines (DRY & Maintainability)
+
+> Specs rot the same way production code rots: AI stacks redundant `createComponent` + `detectChanges` blocks until every test re-arranges the world from scratch. Apply the same continuous-refactoring discipline to specs as to features.
+
+- **Shared setup in `beforeEach`:** lift `TestBed.createComponent`, `fixture.detectChanges()`, and the `nativeElement` cast into the outer `beforeEach`. Expose `fixture`, `component`, and `compiled` as block-scoped `let` bindings — never re-create them inside `it` blocks.
+- **Per-test variation is allowed and intentional.** When a test must mutate a mock BEFORE component construction (e.g. `ActivatedRoute.queryParamMap`, see Hurdle H2), re-call `createComponent` inside that `it` or nested `describe`. Do **not** try to force a single shared fixture — that fights the framework.
+- **Group related scenarios with nested `describe` blocks.** Each block is a coherent slice of behavior (`form validation`, `loading state`, `error handling`, `aria accessibility`, `returnUrl handling`), not a dump of unrelated `it`s. Nested `describe`s document intent and let future readers find tests by concern.
+- **Extract fill-form helpers on the THIRD repetition** (per Section 12), not the second. Example: `fillLoginForm({ email, password })` once the same `setValue` sequence appears in 3+ tests. Premature helpers obscure more than they save.
+- **Factor out mock factories** for repeated HTTP scenarios: `mockLoginFailure(status)`, `mockLoginInFlight()`. Test bodies should describe behavior under test, not RxJS plumbing.
+- **AAA per test, separated by blank lines.** Each `it` reads top-down: Arrange → Act → Assert. No interleaving, no setup hidden inside assertions.
+- **Test behavior, not implementation.** A 100-line spec that covers the user-visible contract beats a 500-line spec that asserts every internal call. Avoid asserting on private methods or signal internals — query the DOM via `data-testid` (§7).
+- **Isolation is non-negotiable.** No mutable state shared across `it` blocks. Reset spies and mocks in `beforeEach`. Each test must pass alone and in any order.
+- **Use signal getters for reactive assertions.** When asserting on signals (`component.errorMessage()`, `component.isLoading()`), call them like functions — never read `.value` or rely on internal RxJS subjects.
+- **Hard limit: 400 lines per spec file.** If you cross that threshold, **refactor BEFORE adding new tests** — extract helpers, regroup with `describe`, or split by concern (e.g. `login.component.spec.ts` + `login.component.aria.spec.ts`). The FrankMD lesson (§3.1) applies to specs too: by the time a file hits 1.000+ lines, only emergency rewrites work.
+
 ---
 
 ## 8. Security — MANDATORY (Habit, Not Phase)

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
@@ -11,6 +11,9 @@ describe('LoginComponent', () => {
   let loginSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
   let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
+  let fixture: ComponentFixture<LoginComponent>;
+  let component: LoginComponent;
+  let compiled: HTMLElement;
 
   beforeEach(() => {
     loginSpy = vi.fn(() => of({ results: {} }));
@@ -27,14 +30,14 @@ describe('LoginComponent', () => {
 
     const router = TestBed.inject(Router);
     navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    compiled = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
   });
 
   it('should start in Login mode', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-
     expect(compiled.textContent).toContain('Login');
     expect(compiled.textContent).not.toContain('Registro');
 
@@ -44,10 +47,6 @@ describe('LoginComponent', () => {
   });
 
   it('should render a create account navigation button', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const toggleButton = compiled.querySelector('button');
 
     expect(toggleButton).toBeTruthy();
@@ -55,30 +54,18 @@ describe('LoginComponent', () => {
   });
 
   it('should render an email input field in Login mode', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const emailInput = compiled.querySelector("input[type='email']");
 
     expect(emailInput).toBeTruthy();
   });
 
   it('should render a password input field in Login mode', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const passwordInput = compiled.querySelector("input[type='password']");
 
     expect(passwordInput).toBeTruthy();
   });
 
   it('should have a label associated with the email input', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const label = compiled.querySelector("label[for='login-email']");
     const input = compiled.querySelector("input#login-email");
 
@@ -87,10 +74,6 @@ describe('LoginComponent', () => {
   });
 
   it('should have a label associated with the password input', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const label = compiled.querySelector("label[for='login-password']");
     const input = compiled.querySelector("input#login-password");
 
@@ -99,10 +82,6 @@ describe('LoginComponent', () => {
   });
 
   it('should render an Entrar submit button in Login mode', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
     const submitButton = compiled.querySelector("button[type='submit']");
 
     expect(submitButton).toBeTruthy();
@@ -110,15 +89,10 @@ describe('LoginComponent', () => {
   });
 
   it('should disable login button when email field is empty', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
     const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
 
     expect(component.loginForm.invalid).toBeTruthy();
@@ -126,15 +100,10 @@ describe('LoginComponent', () => {
   });
 
   it('should disable login button when password field is empty', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
     const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
 
     expect(component.loginForm.invalid).toBeTruthy();
@@ -142,15 +111,10 @@ describe('LoginComponent', () => {
   });
 
   it('should disable login button when email and password fields are empty', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('');
     component.loginForm.controls.password.setValue('');
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
     const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
 
     expect(component.loginForm.invalid).toBeTruthy();
@@ -158,10 +122,6 @@ describe('LoginComponent', () => {
   });
 
   it('should call AuthService.login with lowercased email', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('USER@Mail.COM');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
@@ -175,10 +135,6 @@ describe('LoginComponent', () => {
   });
 
   it('should call AuthService.login with form payload on valid submit', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
@@ -192,10 +148,6 @@ describe('LoginComponent', () => {
   });
 
   it('should navigate to /dashboard on successful login', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
@@ -206,10 +158,6 @@ describe('LoginComponent', () => {
   });
 
   it('should not call AuthService.login when form is invalid', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('');
     component.loginForm.controls.password.setValue('');
     fixture.detectChanges();
@@ -221,9 +169,6 @@ describe('LoginComponent', () => {
 
   it('should display an error message when login fails', () => {
     loginSpy.mockImplementationOnce(() => throwError(() => new Error('401')));
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('Valid@123');
@@ -232,7 +177,6 @@ describe('LoginComponent', () => {
     component.onSubmit();
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
     const errorElement = compiled.querySelector("[data-testid='login-error']");
 
     expect(component.errorMessage()).toBeTruthy();
@@ -244,10 +188,6 @@ describe('LoginComponent', () => {
     const error = new HttpErrorResponse({ status: 401 });
     loginSpy.mockImplementationOnce(() => throwError(() => error));
 
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('WrongPass@1');
     fixture.detectChanges();
@@ -255,7 +195,7 @@ describe('LoginComponent', () => {
     component.onSubmit();
     fixture.detectChanges();
 
-    const errorElement = fixture.nativeElement.querySelector("[data-testid='login-error']");
+    const errorElement = compiled.querySelector("[data-testid='login-error']");
     expect(errorElement?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
   });
 
@@ -394,28 +334,18 @@ describe('LoginComponent', () => {
   });
 
   it('should have autocomplete="email" on the email input', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const emailInput = fixture.nativeElement.querySelector("input[type='email']");
+    const emailInput = compiled.querySelector("input[type='email']");
     expect(emailInput?.getAttribute('autocomplete')).toBe('email');
   });
 
   it('should have autocomplete="current-password" on the password input', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    fixture.detectChanges();
-
-    const passwordInput = fixture.nativeElement.querySelector("input[type='password']");
+    const passwordInput = compiled.querySelector("input[type='password']");
     expect(passwordInput?.getAttribute('autocomplete')).toBe('current-password');
   });
 
   it('should disable submit button while request is in flight', () => {
     const subject = new Subject<{ results: unknown }>();
     loginSpy.mockReturnValueOnce(subject.asObservable());
-
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('Valid@123');
@@ -424,9 +354,7 @@ describe('LoginComponent', () => {
     component.onSubmit();
     fixture.detectChanges();
 
-    const submitButton = fixture.nativeElement.querySelector(
-      "button[type='submit']"
-    ) as HTMLButtonElement;
+    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
     expect(submitButton.disabled).toBe(true);
 
     subject.complete();
@@ -436,10 +364,6 @@ describe('LoginComponent', () => {
     const subject = new Subject<{ results: unknown }>();
     loginSpy.mockReturnValueOnce(subject.asObservable());
 
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    fixture.detectChanges();
-
     component.loginForm.controls.email.setValue('user@mail.com');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
@@ -447,9 +371,7 @@ describe('LoginComponent', () => {
     component.onSubmit();
     fixture.detectChanges();
 
-    const submitButton = fixture.nativeElement.querySelector(
-      "button[type='submit']"
-    ) as HTMLButtonElement;
+    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
     expect(submitButton.textContent?.trim()).toBe('Entrando...');
 
     subject.complete();
