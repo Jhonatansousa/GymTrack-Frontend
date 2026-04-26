@@ -33,7 +33,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           </p>
         }
 
-        <input type="email" formControlName="email" class="w-full rounded border px-3 py-2" />
+        <input type="email" formControlName="email" autocomplete="email" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('email', 'required')) {
           <p data-testid="email-error-required" class="text-sm text-red-600">Email is required.</p>
         }
@@ -46,7 +46,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           </p>
         }
 
-        <input type="password" formControlName="password" class="w-full rounded border px-3 py-2" />
+        <input type="password" formControlName="password" autocomplete="new-password" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('password', 'required')) {
           <p data-testid="password-error-required" class="text-sm text-red-600">Password is required.</p>
         }

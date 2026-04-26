@@ -22,6 +22,7 @@ import { AuthService } from '../../../core/services/auth.service';
           type="email"
           formControlName="email"
           placeholder="Email"
+          autocomplete="email"
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.email.hasError('required') && loginForm.controls.email.touched) {
@@ -32,6 +33,7 @@ import { AuthService } from '../../../core/services/auth.service';
           type="password"
           formControlName="password"
           placeholder="Senha"
+          autocomplete="current-password"
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
