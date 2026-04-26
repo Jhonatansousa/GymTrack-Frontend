@@ -87,6 +87,30 @@ describe('RegisterComponent', () => {
     expect(passwordInput?.getAttribute('type')).toBe('password');
   });
 
+  it('should have a label associated with the name input', () => {
+    const label = compiled.querySelector("label[for='register-name']");
+    const input = compiled.querySelector("input#register-name");
+
+    expect(label).toBeTruthy();
+    expect(input).toBeTruthy();
+  });
+
+  it('should have a label associated with the email input', () => {
+    const label = compiled.querySelector("label[for='register-email']");
+    const input = compiled.querySelector("input#register-email");
+
+    expect(label).toBeTruthy();
+    expect(input).toBeTruthy();
+  });
+
+  it('should have a label associated with the password input', () => {
+    const label = compiled.querySelector("label[for='register-password']");
+    const input = compiled.querySelector("input#register-password");
+
+    expect(label).toBeTruthy();
+    expect(input).toBeTruthy();
+  });
+
   it('should render a submit button labeled Register and a back button labeled Already a user?', () => {
     const submitButton = compiled.querySelector("button[type='submit']");
     const backButton = compiled.querySelector("button[type='button']");

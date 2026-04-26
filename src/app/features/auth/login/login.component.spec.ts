@@ -74,6 +74,30 @@ describe('LoginComponent', () => {
     expect(passwordInput).toBeTruthy();
   });
 
+  it('should have a label associated with the email input', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const label = compiled.querySelector("label[for='login-email']");
+    const input = compiled.querySelector("input#login-email");
+
+    expect(label).toBeTruthy();
+    expect(input).toBeTruthy();
+  });
+
+  it('should have a label associated with the password input', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const label = compiled.querySelector("label[for='login-password']");
+    const input = compiled.querySelector("input#login-password");
+
+    expect(label).toBeTruthy();
+    expect(input).toBeTruthy();
+  });
+
   it('should render an Entrar submit button in Login mode', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();
