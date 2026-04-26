@@ -24,70 +24,99 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
         <label for="register-name" class="text-sm font-medium">Name</label>
-        <input id="register-name" type="text" formControlName="name" class="w-full rounded border px-3 py-2" />
-        @if (shouldShowError('name', 'required')) {
-          <p data-testid="name-error-required" class="text-sm text-red-600">Name is required.</p>
-        }
-        @if (shouldShowError('name', 'minlength')) {
-          <p data-testid="name-error-minlength" class="text-sm text-red-600">
-            Name must have at least 2 characters.
-          </p>
-        }
-        @if (shouldShowError('name', 'maxlength')) {
-          <p data-testid="name-error-maxlength" class="text-sm text-red-600">
-            Name must have at most 100 characters.
-          </p>
-        }
+        <input
+          id="register-name"
+          type="text"
+          formControlName="name"
+          aria-describedby="register-name-errors"
+          [attr.aria-invalid]="registerForm.controls.name.invalid && registerForm.controls.name.touched ? 'true' : null"
+          class="w-full rounded border px-3 py-2"
+        />
+        <div id="register-name-errors">
+          @if (shouldShowError('name', 'required')) {
+            <p data-testid="name-error-required" class="text-sm text-red-600">Name is required.</p>
+          }
+          @if (shouldShowError('name', 'minlength')) {
+            <p data-testid="name-error-minlength" class="text-sm text-red-600">
+              Name must have at least 2 characters.
+            </p>
+          }
+          @if (shouldShowError('name', 'maxlength')) {
+            <p data-testid="name-error-maxlength" class="text-sm text-red-600">
+              Name must have at most 100 characters.
+            </p>
+          }
+        </div>
 
         <label for="register-email" class="text-sm font-medium">Email</label>
-        <input id="register-email" type="email" formControlName="email" autocomplete="email" class="w-full rounded border px-3 py-2" />
-        @if (shouldShowError('email', 'required')) {
-          <p data-testid="email-error-required" class="text-sm text-red-600">Email is required.</p>
-        }
-        @if (shouldShowError('email', 'email')) {
-          <p data-testid="email-error-format" class="text-sm text-red-600">Email format is invalid.</p>
-        }
-        @if (shouldShowError('email', 'maxlength')) {
-          <p data-testid="email-error-maxlength" class="text-sm text-red-600">
-            Email must have at most 254 characters.
-          </p>
-        }
+        <input
+          id="register-email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          aria-describedby="register-email-errors"
+          [attr.aria-invalid]="registerForm.controls.email.invalid && registerForm.controls.email.touched ? 'true' : null"
+          class="w-full rounded border px-3 py-2"
+        />
+        <div id="register-email-errors">
+          @if (shouldShowError('email', 'required')) {
+            <p data-testid="email-error-required" class="text-sm text-red-600">Email is required.</p>
+          }
+          @if (shouldShowError('email', 'email')) {
+            <p data-testid="email-error-format" class="text-sm text-red-600">Email format is invalid.</p>
+          }
+          @if (shouldShowError('email', 'maxlength')) {
+            <p data-testid="email-error-maxlength" class="text-sm text-red-600">
+              Email must have at most 254 characters.
+            </p>
+          }
+        </div>
 
         <label for="register-password" class="text-sm font-medium">Password</label>
-        <input id="register-password" type="password" formControlName="password" autocomplete="new-password" class="w-full rounded border px-3 py-2" />
-        @if (shouldShowError('password', 'required')) {
-          <p data-testid="password-error-required" class="text-sm text-red-600">Password is required.</p>
-        }
-        @if (shouldShowError('password', 'minlength')) {
-          <p data-testid="password-error-minlength" class="text-sm text-red-600">
-            Password must have at least 8 characters.
-          </p>
-        }
-        @if (shouldShowError('password', 'maxlength')) {
-          <p data-testid="password-error-maxlength" class="text-sm text-red-600">
-            Password must have at most 128 characters.
-          </p>
-        }
-        @if (shouldShowPasswordPatternRule('uppercase')) {
-          <p data-testid="password-error-uppercase" class="text-sm text-red-600">
-            Password must contain an uppercase letter.
-          </p>
-        }
-        @if (shouldShowPasswordPatternRule('lowercase')) {
-          <p data-testid="password-error-lowercase" class="text-sm text-red-600">
-            Password must contain a lowercase letter.
-          </p>
-        }
-        @if (shouldShowPasswordPatternRule('number')) {
-          <p data-testid="password-error-number" class="text-sm text-red-600">
-            Password must contain a number.
-          </p>
-        }
-        @if (shouldShowPasswordPatternRule('specialChar')) {
-          <p data-testid="password-error-specialChar" class="text-sm text-red-600">
-            Password must contain a special character.
-          </p>
-        }
+        <input
+          id="register-password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          aria-describedby="register-password-errors"
+          [attr.aria-invalid]="registerForm.controls.password.invalid && registerForm.controls.password.touched ? 'true' : null"
+          class="w-full rounded border px-3 py-2"
+        />
+        <div id="register-password-errors">
+          @if (shouldShowError('password', 'required')) {
+            <p data-testid="password-error-required" class="text-sm text-red-600">Password is required.</p>
+          }
+          @if (shouldShowError('password', 'minlength')) {
+            <p data-testid="password-error-minlength" class="text-sm text-red-600">
+              Password must have at least 8 characters.
+            </p>
+          }
+          @if (shouldShowError('password', 'maxlength')) {
+            <p data-testid="password-error-maxlength" class="text-sm text-red-600">
+              Password must have at most 128 characters.
+            </p>
+          }
+          @if (shouldShowPasswordPatternRule('uppercase')) {
+            <p data-testid="password-error-uppercase" class="text-sm text-red-600">
+              Password must contain an uppercase letter.
+            </p>
+          }
+          @if (shouldShowPasswordPatternRule('lowercase')) {
+            <p data-testid="password-error-lowercase" class="text-sm text-red-600">
+              Password must contain a lowercase letter.
+            </p>
+          }
+          @if (shouldShowPasswordPatternRule('number')) {
+            <p data-testid="password-error-number" class="text-sm text-red-600">
+              Password must contain a number.
+            </p>
+          }
+          @if (shouldShowPasswordPatternRule('specialChar')) {
+            <p data-testid="password-error-specialChar" class="text-sm text-red-600">
+              Password must contain a special character.
+            </p>
+          }
+        </div>
 
         <button
           type="submit"

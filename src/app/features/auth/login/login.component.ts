@@ -25,10 +25,12 @@ import { AuthService } from '../../../core/services/auth.service';
           formControlName="email"
           placeholder="Email"
           autocomplete="email"
+          aria-describedby="login-email-error"
+          [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.email.hasError('required') && loginForm.controls.email.touched) {
-          <p class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          <p id="login-email-error" class="text-sm text-red-600">O campo precisa ser preenchido.</p>
         }
 
         <label for="login-password" class="text-sm font-medium">Senha</label>
@@ -38,10 +40,12 @@ import { AuthService } from '../../../core/services/auth.service';
           formControlName="password"
           placeholder="Senha"
           autocomplete="current-password"
+          aria-describedby="login-password-error"
+          [attr.aria-invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched ? 'true' : null"
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
-          <p class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          <p id="login-password-error" class="text-sm text-red-600">O campo precisa ser preenchido.</p>
         }
 
         <button
