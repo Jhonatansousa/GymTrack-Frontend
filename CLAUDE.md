@@ -230,16 +230,99 @@ Legacy Angular patterns will be rejected on review.
 
 > Specs rot the same way production code rots: AI stacks redundant `createComponent` + `detectChanges` blocks until every test re-arranges the world from scratch. Apply the same continuous-refactoring discipline to specs as to features.
 
+#### Structure
+
 - **Shared setup in `beforeEach`:** lift `TestBed.createComponent`, `fixture.detectChanges()`, and the `nativeElement` cast into the outer `beforeEach`. Expose `fixture`, `component`, and `compiled` as block-scoped `let` bindings — never re-create them inside `it` blocks.
 - **Per-test variation is allowed and intentional.** When a test must mutate a mock BEFORE component construction (e.g. `ActivatedRoute.queryParamMap`, see Hurdle H2), re-call `createComponent` inside that `it` or nested `describe`. Do **not** try to force a single shared fixture — that fights the framework.
-- **Group related scenarios with nested `describe` blocks.** Each block is a coherent slice of behavior (`form validation`, `loading state`, `error handling`, `aria accessibility`, `returnUrl handling`), not a dump of unrelated `it`s. Nested `describe`s document intent and let future readers find tests by concern.
-- **Extract fill-form helpers on the THIRD repetition** (per Section 12), not the second. Example: `fillLoginForm({ email, password })` once the same `setValue` sequence appears in 3+ tests. Premature helpers obscure more than they save.
-- **Factor out mock factories** for repeated HTTP scenarios: `mockLoginFailure(status)`, `mockLoginInFlight()`. Test bodies should describe behavior under test, not RxJS plumbing.
+- **Group related scenarios with nested `describe` blocks.** Each block is a coherent slice of behavior (`form structure`, `submit button state`, `form submission`, `error handling`, `aria accessibility`, `returnUrl handling`, `autocomplete`), not a dump of unrelated `it`s. Nested `describe`s document intent and let future readers find tests by concern.
 - **AAA per test, separated by blank lines.** Each `it` reads top-down: Arrange → Act → Assert. No interleaving, no setup hidden inside assertions.
 - **Test behavior, not implementation.** A 100-line spec that covers the user-visible contract beats a 500-line spec that asserts every internal call. Avoid asserting on private methods or signal internals — query the DOM via `data-testid` (§7).
 - **Isolation is non-negotiable.** No mutable state shared across `it` blocks. Reset spies and mocks in `beforeEach`. Each test must pass alone and in any order.
+
+#### Typed Helpers (established pattern — follow in every form spec)
+
+- **Type alias for control keys** — declare at the top of the describe, before the `let` bindings:
+  ```ts
+  type LoginControlKey = keyof LoginComponent['loginForm']['controls'];
+  ```
+  This drives fully typed generic helpers (`setControlValue<K extends LoginControlKey>`) without `as FormControl<string>` casts scattered in tests.
+
+- **DOM query helper functions** — extract every repeated `compiled.querySelector(...)` into a named function. Standard set:
+  ```ts
+  function inputById(name: LoginControlKey): HTMLInputElement | null {
+    return compiled.querySelector(`input#login-${name}`);
+  }
+  function submitButton(): HTMLButtonElement {
+    return compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+  }
+  function queryByTestId(testId: string): HTMLElement | null {
+    return compiled.querySelector(`[data-testid='${testId}']`);
+  }
+  ```
+  Add `backButton()`, `inputByName()`, etc. when needed. Never inline `querySelector` calls directly in `it` bodies.
+
+- **`setControlValue` helper** — single function for "set value + optional touch + detectChanges":
+  ```ts
+  function setControlValue<K extends XControlKey>(key: K, value: string, touched = true): void {
+    const formControl = component.xForm.controls[key] as FormControl<string>;
+    formControl.setValue(value);
+    if (touched) formControl.markAsTouched();
+    fixture.detectChanges();
+  }
+  ```
+
+- **`fillForm` with partial overrides** — one helper covers both "valid form" and "one field empty/invalid" scenarios:
+  ```ts
+  function fillForm(values: Partial<Record<XControlKey, string>> = {}): void {
+    const merged = { field1: 'defaultValid1', field2: 'defaultValid2', ...values };
+    component.xForm.controls.field1.setValue(merged.field1);
+    component.xForm.controls.field2.setValue(merged.field2);
+    fixture.detectChanges();
+  }
+  ```
+  Usage: `fillForm()` → all valid; `fillForm({ email: '' })` → one field empty. DOM query helpers (`submitButton()`, `queryByTestId()`, `inputById()`) are extracted as soon as they appear in 2+ tests — they are noise when inlined. Reserve the third-repetition rule for orchestration helpers like `fillForm()`.
+
+#### Mock Factories
+
+- **Factor out mock factories** for repeated HTTP scenarios. Ordering convention: call the mock factory **before** `fillForm()` in the Arrange phase — it must be set up before the observable is triggered.
+  ```ts
+  function mockLoginError(error: unknown): void {
+    loginSpy.mockImplementationOnce(() => throwError(() => error));
+  }
+  function mockLoginInFlight(): Subject<{ results: unknown }> {
+    const subject = new Subject<{ results: unknown }>();
+    loginSpy.mockReturnValueOnce(subject.asObservable());
+    return subject;
+  }
+  ```
+  Test bodies describe behavior under test, not RxJS plumbing:
+  ```ts
+  it('should display an error message when login fails', () => {
+    mockLoginError(new Error('401')); // mock BEFORE fillForm
+    fillForm();
+    component.onSubmit();
+    fixture.detectChanges();
+    expect(queryByTestId('login-error')).toBeTruthy();
+  });
+  ```
+
+- **Describe-level payload constants** — when 2+ tests inside the same `describe` assert the same object, hoist it as a `const` at the describe level:
+  ```ts
+  describe('form submission', () => {
+    const expectedPayload = { email: 'user@mail.com', password: 'Valid@123' };
+
+    it('should call AuthService.login with form payload', () => { ... });
+    it('should call AuthService.login with lowercased email', () => { ... });
+  });
+  ```
+
+#### Reactive Assertions
+
 - **Use signal getters for reactive assertions.** When asserting on signals (`component.errorMessage()`, `component.isLoading()`), call them like functions — never read `.value` or rely on internal RxJS subjects.
-- **Hard limit: 400 lines per spec file.** If you cross that threshold, **refactor BEFORE adding new tests** — extract helpers, regroup with `describe`, or split by concern (e.g. `login.component.spec.ts` + `login.component.aria.spec.ts`). The FrankMD lesson (§3.1) applies to specs too: by the time a file hits 1.000+ lines, only emergency rewrites work.
+
+#### Size Discipline
+
+- **Hard limit: 400 lines per spec file.** If you cross that threshold, **refactor BEFORE adding new tests** — extract helpers, regroup with `describe`, or split by concern (e.g. `login.component.spec.ts` + `login.component.returnUrl.spec.ts`). The FrankMD lesson (§3.1) applies to specs too: by the time a file hits 1.000+ lines, only emergency rewrites work. Split by behavior domain, never by cross-cutting concern.
 
 ---
 

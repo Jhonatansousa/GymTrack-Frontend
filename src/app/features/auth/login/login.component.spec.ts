@@ -155,6 +155,23 @@ describe('LoginComponent', () => {
 
       subject.complete();
     });
+
+    it('should re-enable submit button after request fails', () => {
+      mockLoginError(new Error('500'));
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().disabled).toBe(false);
+    });
+
+    it('should disable submit button when email format is invalid', () => {
+      fillForm({ email: 'notanemail' });
+
+      expect(component.loginForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
   });
 
   describe('form submission', () => {
@@ -214,6 +231,25 @@ describe('LoginComponent', () => {
       fixture.detectChanges();
 
       expect(queryByTestId('login-error')?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
+    });
+
+    it('should clear error message when a new submit is attempted', () => {
+      mockLoginError(new Error('401'));
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+      expect(queryByTestId('login-error')).toBeTruthy();
+
+      const subject = mockLoginInFlight();
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.errorMessage()).toBeFalsy();
+      expect(queryByTestId('login-error')).toBeNull();
+
+      subject.complete();
     });
   });
 

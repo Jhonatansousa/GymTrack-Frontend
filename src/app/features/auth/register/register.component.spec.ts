@@ -232,6 +232,23 @@ describe('RegisterComponent', () => {
 
       subject.complete();
     });
+
+    it('should re-enable submit button after request fails', () => {
+      mockRegisterError(new Error('500'));
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().disabled).toBe(false);
+    });
+
+    it('should disable submit button when email format is invalid', () => {
+      fillForm({ email: 'notanemail' });
+
+      expect(component.registerForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
   });
 
   describe('navigation', () => {
@@ -454,6 +471,27 @@ describe('RegisterComponent', () => {
       fixture.detectChanges();
 
       expect(queryByTestId('register-error')?.textContent?.trim()).toBe('Este email já está cadastrado.');
+    });
+  });
+
+  describe('error handling', () => {
+    it('should clear error message when a new submit is attempted', () => {
+      mockRegisterError(new Error('401'));
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+      expect(queryByTestId('register-error')).toBeTruthy();
+
+      const subject = mockRegisterInFlight();
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.errorMessage()).toBeFalsy();
+      expect(queryByTestId('register-error')).toBeNull();
+
+      subject.complete();
     });
   });
 
