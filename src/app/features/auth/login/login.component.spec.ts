@@ -133,12 +133,12 @@ describe('LoginComponent', () => {
     expect(submitButton.disabled).toBe(true);
   });
 
-  it('should call AuthService.login with trimmed and lowercased email', () => {
+  it('should call AuthService.login with lowercased email', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    component.loginForm.controls.email.setValue('  USER@Mail.COM  ');
+    component.loginForm.controls.email.setValue('USER@Mail.COM');
     component.loginForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
 

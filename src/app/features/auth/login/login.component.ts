@@ -91,7 +91,8 @@ export class LoginComponent {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.login(this.loginForm.getRawValue()).subscribe({
+    const { email, password } = this.loginForm.getRawValue();
+    this.authService.login({ email: email.trim().toLowerCase(), password }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');

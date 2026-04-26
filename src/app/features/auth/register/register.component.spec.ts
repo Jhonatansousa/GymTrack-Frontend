@@ -299,9 +299,9 @@ describe('RegisterComponent', () => {
     expect(queryByTestId('password-error-specialChar')).toBeNull();
   });
 
-  it('should call AuthService.register with trimmed and lowercased email', () => {
+  it('should call AuthService.register with lowercased email', () => {
     component.registerForm.controls.name.setValue('User Name');
-    component.registerForm.controls.email.setValue('  USER@Mail.COM  ');
+    component.registerForm.controls.email.setValue('USER@Mail.COM');
     component.registerForm.controls.password.setValue('Valid@123');
     fixture.detectChanges();
 

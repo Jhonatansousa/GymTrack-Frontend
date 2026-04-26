@@ -152,7 +152,8 @@ export class RegisterComponent {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.register(this.registerForm.getRawValue()).subscribe({
+    const { name, email, password } = this.registerForm.getRawValue();
+    this.authService.register({ name, email: email.trim().toLowerCase(), password }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         void this.router.navigate(['/dashboard']);
