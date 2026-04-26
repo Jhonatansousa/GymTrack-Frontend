@@ -282,6 +282,22 @@ describe('LoginComponent', () => {
     });
   });
 
+  it('should have autocomplete="email" on the email input', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const emailInput = fixture.nativeElement.querySelector("input[type='email']");
+    expect(emailInput?.getAttribute('autocomplete')).toBe('email');
+  });
+
+  it('should have autocomplete="current-password" on the password input', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+
+    const passwordInput = fixture.nativeElement.querySelector("input[type='password']");
+    expect(passwordInput?.getAttribute('autocomplete')).toBe('current-password');
+  });
+
   it('should disable submit button while request is in flight', () => {
     const subject = new Subject<{ results: unknown }>();
     loginSpy.mockReturnValueOnce(subject.asObservable());

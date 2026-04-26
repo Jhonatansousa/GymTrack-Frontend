@@ -341,6 +341,16 @@ describe('RegisterComponent', () => {
     expect(errorElement?.textContent?.trim()).toBe('Este email já está cadastrado.');
   });
 
+  it('should have autocomplete="email" on the email input', () => {
+    const emailInput = compiled.querySelector("input[formControlName='email']");
+    expect(emailInput?.getAttribute('autocomplete')).toBe('email');
+  });
+
+  it('should have autocomplete="new-password" on the password input', () => {
+    const passwordInput = compiled.querySelector("input[formControlName='password']");
+    expect(passwordInput?.getAttribute('autocomplete')).toBe('new-password');
+  });
+
   it('should disable submit button while request is in flight', () => {
     const subject = new Subject<{ results: unknown }>();
     registerSpy.mockReturnValueOnce(subject.asObservable());
