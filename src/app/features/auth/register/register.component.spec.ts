@@ -215,6 +215,20 @@ describe('RegisterComponent', () => {
     expect(queryByTestId('password-error-specialChar')).toBeTruthy();
   });
 
+  it('should display an error message when the name is shorter than 2 characters and is touched', () => {
+    setControlValue('name', 'A');
+
+    expect(control('name').hasError('minlength')).toBeTruthy();
+    expect(queryByTestId('name-error-minlength')).toBeTruthy();
+  });
+
+  it('should NOT display a name minlength error when name has 2 or more characters', () => {
+    setControlValue('name', 'Al');
+
+    expect(control('name').hasError('minlength')).toBeFalsy();
+    expect(queryByTestId('name-error-minlength')).toBeNull();
+  });
+
   it('should display an error message when the name exceeds 100 characters and is touched', () => {
     setControlValue('name', 'a'.repeat(101));
 
