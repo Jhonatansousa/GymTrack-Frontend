@@ -18,7 +18,9 @@ import { AuthService } from '../../../core/services/auth.service';
       </button>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
+        <label for="login-email" class="text-sm font-medium">Email</label>
         <input
+          id="login-email"
           type="email"
           formControlName="email"
           placeholder="Email"
@@ -29,7 +31,9 @@ import { AuthService } from '../../../core/services/auth.service';
           <p class="text-sm text-red-600">O campo precisa ser preenchido.</p>
         }
 
+        <label for="login-password" class="text-sm font-medium">Senha</label>
         <input
+          id="login-password"
           type="password"
           formControlName="password"
           placeholder="Senha"

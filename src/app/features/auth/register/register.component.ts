@@ -23,7 +23,8 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
       <h1 class="text-xl font-semibold">Register</h1>
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
-        <input type="text" formControlName="name" class="w-full rounded border px-3 py-2" />
+        <label for="register-name" class="text-sm font-medium">Name</label>
+        <input id="register-name" type="text" formControlName="name" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('name', 'required')) {
           <p data-testid="name-error-required" class="text-sm text-red-600">Name is required.</p>
         }
@@ -38,7 +39,8 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           </p>
         }
 
-        <input type="email" formControlName="email" autocomplete="email" class="w-full rounded border px-3 py-2" />
+        <label for="register-email" class="text-sm font-medium">Email</label>
+        <input id="register-email" type="email" formControlName="email" autocomplete="email" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('email', 'required')) {
           <p data-testid="email-error-required" class="text-sm text-red-600">Email is required.</p>
         }
@@ -51,7 +53,8 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           </p>
         }
 
-        <input type="password" formControlName="password" autocomplete="new-password" class="w-full rounded border px-3 py-2" />
+        <label for="register-password" class="text-sm font-medium">Password</label>
+        <input id="register-password" type="password" formControlName="password" autocomplete="new-password" class="w-full rounded border px-3 py-2" />
         @if (shouldShowError('password', 'required')) {
           <p data-testid="password-error-required" class="text-sm text-red-600">Password is required.</p>
         }
