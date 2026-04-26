@@ -27,6 +27,11 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         @if (shouldShowError('name', 'required')) {
           <p data-testid="name-error-required" class="text-sm text-red-600">Name is required.</p>
         }
+        @if (shouldShowError('name', 'minlength')) {
+          <p data-testid="name-error-minlength" class="text-sm text-red-600">
+            Name must have at least 2 characters.
+          </p>
+        }
         @if (shouldShowError('name', 'maxlength')) {
           <p data-testid="name-error-maxlength" class="text-sm text-red-600">
             Name must have at most 100 characters.
@@ -118,7 +123,7 @@ export class RegisterComponent {
   readonly registerForm = new FormGroup<RegisterForm>({
     name: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(100)],
+      validators: [Validators.required, Validators.minLength(2), Validators.maxLength(100)],
     }),
     email: new FormControl('', {
       nonNullable: true,
