@@ -323,6 +323,76 @@ describe('LoginComponent', () => {
     });
   });
 
+  describe('aria accessibility', () => {
+    it('should set aria-invalid="true" on email input when invalid and touched', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('');
+      component.loginForm.controls.email.markAsTouched();
+      fixture.detectChanges();
+
+      const emailInput = fixture.nativeElement.querySelector("input#login-email");
+      expect(emailInput?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should not set aria-invalid on email input when valid and touched', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('user@mail.com');
+      component.loginForm.controls.email.markAsTouched();
+      fixture.detectChanges();
+
+      const emailInput = fixture.nativeElement.querySelector("input#login-email");
+      expect(emailInput?.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('should have aria-describedby pointing to email error on email input', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      fixture.detectChanges();
+
+      const emailInput = fixture.nativeElement.querySelector("input#login-email");
+      expect(emailInput?.getAttribute('aria-describedby')).toBe('login-email-error');
+    });
+
+    it('should set aria-invalid="true" on password input when invalid and touched', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.password.setValue('');
+      component.loginForm.controls.password.markAsTouched();
+      fixture.detectChanges();
+
+      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
+      expect(passwordInput?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should not set aria-invalid on password input when valid and touched', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.password.setValue('Valid@123');
+      component.loginForm.controls.password.markAsTouched();
+      fixture.detectChanges();
+
+      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
+      expect(passwordInput?.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('should have aria-describedby pointing to password error on password input', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      fixture.detectChanges();
+
+      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
+      expect(passwordInput?.getAttribute('aria-describedby')).toBe('login-password-error');
+    });
+  });
+
   it('should have autocomplete="email" on the email input', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     fixture.detectChanges();

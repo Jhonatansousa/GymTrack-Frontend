@@ -111,6 +111,59 @@ describe('RegisterComponent', () => {
     expect(input).toBeTruthy();
   });
 
+  describe('aria accessibility', () => {
+    it('should set aria-invalid="true" on name input when invalid and touched', () => {
+      setControlValue('name', '');
+      const input = compiled.querySelector("input#register-name");
+      expect(input?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should not set aria-invalid on name input when valid and touched', () => {
+      setControlValue('name', 'John');
+      const input = compiled.querySelector("input#register-name");
+      expect(input?.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('should have aria-describedby pointing to name error container on name input', () => {
+      const input = compiled.querySelector("input#register-name");
+      expect(input?.getAttribute('aria-describedby')).toBe('register-name-errors');
+    });
+
+    it('should set aria-invalid="true" on email input when invalid and touched', () => {
+      setControlValue('email', '');
+      const input = compiled.querySelector("input#register-email");
+      expect(input?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should not set aria-invalid on email input when valid and touched', () => {
+      setControlValue('email', 'user@mail.com');
+      const input = compiled.querySelector("input#register-email");
+      expect(input?.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('should have aria-describedby pointing to email error container on email input', () => {
+      const input = compiled.querySelector("input#register-email");
+      expect(input?.getAttribute('aria-describedby')).toBe('register-email-errors');
+    });
+
+    it('should set aria-invalid="true" on password input when invalid and touched', () => {
+      setControlValue('password', '');
+      const input = compiled.querySelector("input#register-password");
+      expect(input?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('should not set aria-invalid on password input when valid and touched', () => {
+      setControlValue('password', 'Valid@123');
+      const input = compiled.querySelector("input#register-password");
+      expect(input?.getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('should have aria-describedby pointing to password error container on password input', () => {
+      const input = compiled.querySelector("input#register-password");
+      expect(input?.getAttribute('aria-describedby')).toBe('register-password-errors');
+    });
+  });
+
   it('should render a submit button labeled Register and a back button labeled Already a user?', () => {
     const submitButton = compiled.querySelector("button[type='submit']");
     const backButton = compiled.querySelector("button[type='button']");
