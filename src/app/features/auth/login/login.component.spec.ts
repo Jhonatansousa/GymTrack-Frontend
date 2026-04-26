@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FormControl } from '@angular/forms';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
@@ -6,6 +7,8 @@ import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginComponent } from './login.component';
+
+type LoginControlKey = keyof LoginComponent['loginForm']['controls'];
 
 describe('LoginComponent', () => {
   let loginSpy: ReturnType<typeof vi.fn>;
@@ -37,166 +40,181 @@ describe('LoginComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should start in Login mode', () => {
-    expect(compiled.textContent).toContain('Login');
-    expect(compiled.textContent).not.toContain('Registro');
-
-    const toggleButton = compiled.querySelector('button');
-    expect(toggleButton).toBeTruthy();
-    expect(toggleButton?.textContent).toContain('Criar conta');
-  });
-
-  it('should render a create account navigation button', () => {
-    const toggleButton = compiled.querySelector('button');
-
-    expect(toggleButton).toBeTruthy();
-    expect(toggleButton?.textContent).toContain('Criar conta');
-  });
-
-  it('should render an email input field in Login mode', () => {
-    const emailInput = compiled.querySelector("input[type='email']");
-
-    expect(emailInput).toBeTruthy();
-  });
-
-  it('should render a password input field in Login mode', () => {
-    const passwordInput = compiled.querySelector("input[type='password']");
-
-    expect(passwordInput).toBeTruthy();
-  });
-
-  it('should have a label associated with the email input', () => {
-    const label = compiled.querySelector("label[for='login-email']");
-    const input = compiled.querySelector("input#login-email");
-
-    expect(label).toBeTruthy();
-    expect(input).toBeTruthy();
-  });
-
-  it('should have a label associated with the password input', () => {
-    const label = compiled.querySelector("label[for='login-password']");
-    const input = compiled.querySelector("input#login-password");
-
-    expect(label).toBeTruthy();
-    expect(input).toBeTruthy();
-  });
-
-  it('should render an Entrar submit button in Login mode', () => {
-    const submitButton = compiled.querySelector("button[type='submit']");
-
-    expect(submitButton).toBeTruthy();
-    expect(submitButton?.textContent).toContain('Entrar');
-  });
-
-  it('should disable login button when email field is empty', () => {
-    component.loginForm.controls.email.setValue('');
-    component.loginForm.controls.password.setValue('Valid@123');
+  function setControlValue<K extends LoginControlKey>(key: K, value: string, touched = true): void {
+    const formControl = component.loginForm.controls[key] as FormControl<string>;
+    formControl.setValue(value);
+    if (touched) formControl.markAsTouched();
     fixture.detectChanges();
+  }
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
-
-    expect(component.loginForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
-  });
-
-  it('should disable login button when password field is empty', () => {
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('');
+  function fillForm(values: Partial<Record<LoginControlKey, string>> = {}): void {
+    const merged = { email: 'user@mail.com', password: 'Valid@123', ...values };
+    component.loginForm.controls.email.setValue(merged.email);
+    component.loginForm.controls.password.setValue(merged.password);
     fixture.detectChanges();
+  }
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+  function inputById(name: LoginControlKey): HTMLInputElement | null {
+    return compiled.querySelector(`input#login-${name}`);
+  }
 
-    expect(component.loginForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
-  });
+  function submitButton(): HTMLButtonElement {
+    return compiled.querySelector("button[type='submit']") as HTMLButtonElement;
+  }
 
-  it('should disable login button when email and password fields are empty', () => {
-    component.loginForm.controls.email.setValue('');
-    component.loginForm.controls.password.setValue('');
-    fixture.detectChanges();
+  function queryByTestId(testId: string): HTMLElement | null {
+    return compiled.querySelector(`[data-testid='${testId}']`);
+  }
 
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
-
-    expect(component.loginForm.invalid).toBeTruthy();
-    expect(submitButton.disabled).toBe(true);
-  });
-
-  it('should call AuthService.login with lowercased email', () => {
-    component.loginForm.controls.email.setValue('USER@Mail.COM');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(loginSpy).toHaveBeenCalledWith({
-      email: 'user@mail.com',
-      password: 'Valid@123',
-    });
-  });
-
-  it('should call AuthService.login with form payload on valid submit', () => {
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(loginSpy).toHaveBeenCalledWith({
-      email: 'user@mail.com',
-      password: 'Valid@123',
-    });
-  });
-
-  it('should navigate to /dashboard on successful login', () => {
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
-  });
-
-  it('should not call AuthService.login when form is invalid', () => {
-    component.loginForm.controls.email.setValue('');
-    component.loginForm.controls.password.setValue('');
-    fixture.detectChanges();
-
-    component.onSubmit();
-
-    expect(loginSpy).not.toHaveBeenCalled();
-  });
-
-  it('should display an error message when login fails', () => {
-    loginSpy.mockImplementationOnce(() => throwError(() => new Error('401')));
-
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const errorElement = compiled.querySelector("[data-testid='login-error']");
-
-    expect(component.errorMessage()).toBeTruthy();
-    expect(errorElement).toBeTruthy();
-    expect(navigateSpy).not.toHaveBeenCalled();
-  });
-
-  it('should display a specific message when login fails with 401', () => {
-    const error = new HttpErrorResponse({ status: 401 });
+  function mockLoginError(error: unknown): void {
     loginSpy.mockImplementationOnce(() => throwError(() => error));
+  }
 
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('WrongPass@1');
-    fixture.detectChanges();
+  function mockLoginInFlight(): Subject<{ results: unknown }> {
+    const subject = new Subject<{ results: unknown }>();
+    loginSpy.mockReturnValueOnce(subject.asObservable());
+    return subject;
+  }
 
-    component.onSubmit();
-    fixture.detectChanges();
+  describe('form structure', () => {
+    it('should start in Login mode', () => {
+      expect(compiled.textContent).toContain('Login');
+      expect(compiled.textContent).not.toContain('Registro');
 
-    const errorElement = compiled.querySelector("[data-testid='login-error']");
-    expect(errorElement?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
+      const toggleButton = compiled.querySelector('button');
+      expect(toggleButton).toBeTruthy();
+      expect(toggleButton?.textContent).toContain('Criar conta');
+    });
+
+    it('should render an email input field in Login mode', () => {
+      expect(compiled.querySelector("input[type='email']")).toBeTruthy();
+    });
+
+    it('should render a password input field in Login mode', () => {
+      expect(compiled.querySelector("input[type='password']")).toBeTruthy();
+    });
+
+    it('should have a label associated with the email input', () => {
+      expect(compiled.querySelector("label[for='login-email']")).toBeTruthy();
+      expect(inputById('email')).toBeTruthy();
+    });
+
+    it('should have a label associated with the password input', () => {
+      expect(compiled.querySelector("label[for='login-password']")).toBeTruthy();
+      expect(inputById('password')).toBeTruthy();
+    });
+
+    it('should render an Entrar submit button in Login mode', () => {
+      expect(submitButton()).toBeTruthy();
+      expect(submitButton().textContent).toContain('Entrar');
+    });
+  });
+
+  describe('submit button state', () => {
+    it('should disable login button when email field is empty', () => {
+      fillForm({ email: '' });
+
+      expect(component.loginForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should disable login button when password field is empty', () => {
+      fillForm({ password: '' });
+
+      expect(component.loginForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should disable login button when email and password fields are empty', () => {
+      fillForm({ email: '', password: '' });
+
+      expect(component.loginForm.invalid).toBeTruthy();
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should disable submit button while request is in flight', () => {
+      const subject = mockLoginInFlight();
+
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().disabled).toBe(true);
+
+      subject.complete();
+    });
+
+    it('should show loading text in submit button while request is in flight', () => {
+      const subject = mockLoginInFlight();
+
+      fillForm();
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(submitButton().textContent?.trim()).toBe('Entrando...');
+
+      subject.complete();
+    });
+  });
+
+  describe('form submission', () => {
+    const expectedPayload = { email: 'user@mail.com', password: 'Valid@123' };
+
+    it('should call AuthService.login with lowercased email', () => {
+      fillForm({ email: 'USER@Mail.COM' });
+
+      component.onSubmit();
+
+      expect(loginSpy).toHaveBeenCalledWith(expectedPayload);
+    });
+
+    it('should call AuthService.login with form payload on valid submit', () => {
+      fillForm();
+
+      component.onSubmit();
+
+      expect(loginSpy).toHaveBeenCalledWith(expectedPayload);
+    });
+
+    it('should navigate to /dashboard on successful login', () => {
+      fillForm();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
+
+    it('should not call AuthService.login when form is invalid', () => {
+      fillForm({ email: '', password: '' });
+
+      component.onSubmit();
+
+      expect(loginSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should display an error message when login fails', () => {
+      mockLoginError(new Error('401'));
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(component.errorMessage()).toBeTruthy();
+      expect(queryByTestId('login-error')).toBeTruthy();
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should display a specific message when login fails with 401', () => {
+      mockLoginError(new HttpErrorResponse({ status: 401 }));
+      fillForm({ password: 'WrongPass@1' });
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(queryByTestId('login-error')?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
+    });
   });
 
   describe('returnUrl handling', () => {
@@ -265,115 +283,41 @@ describe('LoginComponent', () => {
 
   describe('aria accessibility', () => {
     it('should set aria-invalid="true" on email input when invalid and touched', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.email.setValue('');
-      component.loginForm.controls.email.markAsTouched();
-      fixture.detectChanges();
-
-      const emailInput = fixture.nativeElement.querySelector("input#login-email");
-      expect(emailInput?.getAttribute('aria-invalid')).toBe('true');
+      setControlValue('email', '');
+      expect(inputById('email')?.getAttribute('aria-invalid')).toBe('true');
     });
 
     it('should not set aria-invalid on email input when valid and touched', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.email.setValue('user@mail.com');
-      component.loginForm.controls.email.markAsTouched();
-      fixture.detectChanges();
-
-      const emailInput = fixture.nativeElement.querySelector("input#login-email");
-      expect(emailInput?.getAttribute('aria-invalid')).toBeNull();
+      setControlValue('email', 'user@mail.com');
+      expect(inputById('email')?.getAttribute('aria-invalid')).toBeNull();
     });
 
     it('should have aria-describedby pointing to email error on email input', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      fixture.detectChanges();
-
-      const emailInput = fixture.nativeElement.querySelector("input#login-email");
-      expect(emailInput?.getAttribute('aria-describedby')).toBe('login-email-error');
+      expect(inputById('email')?.getAttribute('aria-describedby')).toBe('login-email-error');
     });
 
     it('should set aria-invalid="true" on password input when invalid and touched', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.password.setValue('');
-      component.loginForm.controls.password.markAsTouched();
-      fixture.detectChanges();
-
-      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
-      expect(passwordInput?.getAttribute('aria-invalid')).toBe('true');
+      setControlValue('password', '');
+      expect(inputById('password')?.getAttribute('aria-invalid')).toBe('true');
     });
 
     it('should not set aria-invalid on password input when valid and touched', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.password.setValue('Valid@123');
-      component.loginForm.controls.password.markAsTouched();
-      fixture.detectChanges();
-
-      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
-      expect(passwordInput?.getAttribute('aria-invalid')).toBeNull();
+      setControlValue('password', 'Valid@123');
+      expect(inputById('password')?.getAttribute('aria-invalid')).toBeNull();
     });
 
     it('should have aria-describedby pointing to password error on password input', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      fixture.detectChanges();
-
-      const passwordInput = fixture.nativeElement.querySelector("input#login-password");
-      expect(passwordInput?.getAttribute('aria-describedby')).toBe('login-password-error');
+      expect(inputById('password')?.getAttribute('aria-describedby')).toBe('login-password-error');
     });
   });
 
-  it('should have autocomplete="email" on the email input', () => {
-    const emailInput = compiled.querySelector("input[type='email']");
-    expect(emailInput?.getAttribute('autocomplete')).toBe('email');
-  });
+  describe('autocomplete', () => {
+    it('should have autocomplete="email" on the email input', () => {
+      expect(compiled.querySelector("input[type='email']")?.getAttribute('autocomplete')).toBe('email');
+    });
 
-  it('should have autocomplete="current-password" on the password input', () => {
-    const passwordInput = compiled.querySelector("input[type='password']");
-    expect(passwordInput?.getAttribute('autocomplete')).toBe('current-password');
-  });
-
-  it('should disable submit button while request is in flight', () => {
-    const subject = new Subject<{ results: unknown }>();
-    loginSpy.mockReturnValueOnce(subject.asObservable());
-
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
-    expect(submitButton.disabled).toBe(true);
-
-    subject.complete();
-  });
-
-  it('should show loading text in submit button while request is in flight', () => {
-    const subject = new Subject<{ results: unknown }>();
-    loginSpy.mockReturnValueOnce(subject.asObservable());
-
-    component.loginForm.controls.email.setValue('user@mail.com');
-    component.loginForm.controls.password.setValue('Valid@123');
-    fixture.detectChanges();
-
-    component.onSubmit();
-    fixture.detectChanges();
-
-    const submitButton = compiled.querySelector("button[type='submit']") as HTMLButtonElement;
-    expect(submitButton.textContent?.trim()).toBe('Entrando...');
-
-    subject.complete();
+    it('should have autocomplete="current-password" on the password input', () => {
+      expect(compiled.querySelector("input[type='password']")?.getAttribute('autocomplete')).toBe('current-password');
+    });
   });
 });
