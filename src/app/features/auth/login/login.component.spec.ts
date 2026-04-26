@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
@@ -10,15 +10,18 @@ import { LoginComponent } from './login.component';
 describe('LoginComponent', () => {
   let loginSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
+  let activatedRouteMock: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
 
   beforeEach(() => {
     loginSpy = vi.fn(() => of({ results: {} }));
+    activatedRouteMock = { snapshot: { queryParamMap: convertToParamMap({}) } };
 
     TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: { login: loginSpy } },
+        { provide: ActivatedRoute, useValue: activatedRouteMock },
       ],
     });
 
@@ -213,6 +216,70 @@ describe('LoginComponent', () => {
 
     const errorElement = fixture.nativeElement.querySelector("[data-testid='login-error']");
     expect(errorElement?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
+  });
+
+  describe('returnUrl handling', () => {
+    it('should navigate to a valid returnUrl after successful login', () => {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: '/divisions' });
+
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('user@mail.com');
+      component.loginForm.controls.password.setValue('Valid@123');
+      fixture.detectChanges();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/divisions']);
+    });
+
+    it('should fall back to /dashboard when returnUrl is absent', () => {
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('user@mail.com');
+      component.loginForm.controls.password.setValue('Valid@123');
+      fixture.detectChanges();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
+
+    it('should fall back to /dashboard when returnUrl is an external http:// URL', () => {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: 'http://evil.com/steal' });
+
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('user@mail.com');
+      component.loginForm.controls.password.setValue('Valid@123');
+      fixture.detectChanges();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
+
+    it('should fall back to /dashboard when returnUrl starts with //', () => {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: '//evil.com' });
+
+      const fixture = TestBed.createComponent(LoginComponent);
+      const component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.loginForm.controls.email.setValue('user@mail.com');
+      component.loginForm.controls.password.setValue('Valid@123');
+      fixture.detectChanges();
+
+      component.onSubmit();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
   });
 
   it('should disable submit button while request is in flight', () => {
