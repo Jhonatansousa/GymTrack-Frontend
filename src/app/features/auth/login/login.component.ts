@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { shouldShowError } from '../../../shared/utils/form-errors';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
           [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
           class="w-full rounded border px-3 py-2"
         />
-        @if (loginForm.controls.email.hasError('required') && loginForm.controls.email.touched) {
+        @if (shouldShowError(loginForm.controls.email, 'required')) {
           <p id="login-email-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
         }
 
@@ -44,7 +45,7 @@ import { AuthService } from '../../../core/services/auth.service';
           [attr.aria-invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched ? 'true' : null"
           class="w-full rounded border px-3 py-2"
         />
-        @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
+        @if (shouldShowError(loginForm.controls.password, 'required')) {
           <p id="login-password-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
         }
 
@@ -74,6 +75,8 @@ export class LoginComponent {
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+
+  protected readonly shouldShowError = shouldShowError;
 
   readonly loginForm = new FormGroup({
     email: new FormControl('', {

@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { shouldShowError } from '../../../shared/utils/form-errors';
 
 interface RegisterForm {
   name: FormControl<string>;
@@ -11,7 +12,6 @@ interface RegisterForm {
   password: FormControl<string>;
 }
 
-type RegisterControlName = keyof RegisterForm;
 type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
 
 @Component({
@@ -34,15 +34,15 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           class="w-full rounded border px-3 py-2"
         />
         <div id="register-name-errors">
-          @if (shouldShowError('name', 'required')) {
+          @if (shouldShowError(registerForm.controls.name, 'required')) {
             <p data-testid="name-error-required" class="text-sm text-error">O campo Nome é obrigatório.</p>
           }
-          @if (shouldShowError('name', 'minlength')) {
+          @if (shouldShowError(registerForm.controls.name, 'minlength')) {
             <p data-testid="name-error-minlength" class="text-sm text-error">
               Nome deve ter pelo menos 2 caracteres.
             </p>
           }
-          @if (shouldShowError('name', 'maxlength')) {
+          @if (shouldShowError(registerForm.controls.name, 'maxlength')) {
             <p data-testid="name-error-maxlength" class="text-sm text-error">
               Nome deve ter no máximo 100 caracteres.
             </p>
@@ -61,13 +61,13 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           class="w-full rounded border px-3 py-2"
         />
         <div id="register-email-errors">
-          @if (shouldShowError('email', 'required')) {
+          @if (shouldShowError(registerForm.controls.email, 'required')) {
             <p data-testid="email-error-required" class="text-sm text-error">O campo Email é obrigatório.</p>
           }
-          @if (shouldShowError('email', 'email')) {
+          @if (shouldShowError(registerForm.controls.email, 'email')) {
             <p data-testid="email-error-format" class="text-sm text-error">Formato de email inválido.</p>
           }
-          @if (shouldShowError('email', 'maxlength')) {
+          @if (shouldShowError(registerForm.controls.email, 'maxlength')) {
             <p data-testid="email-error-maxlength" class="text-sm text-error">
               Email deve ter no máximo 254 caracteres.
             </p>
@@ -86,15 +86,15 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           class="w-full rounded border px-3 py-2"
         />
         <div id="register-password-errors">
-          @if (shouldShowError('password', 'required')) {
+          @if (shouldShowError(registerForm.controls.password, 'required')) {
             <p data-testid="password-error-required" class="text-sm text-error">O campo Senha é obrigatório.</p>
           }
-          @if (shouldShowError('password', 'minlength')) {
+          @if (shouldShowError(registerForm.controls.password, 'minlength')) {
             <p data-testid="password-error-minlength" class="text-sm text-error">
               Senha deve ter pelo menos 8 caracteres.
             </p>
           }
-          @if (shouldShowError('password', 'maxlength')) {
+          @if (shouldShowError(registerForm.controls.password, 'maxlength')) {
             <p data-testid="password-error-maxlength" class="text-sm text-error">
               Senha deve ter no máximo 128 caracteres.
             </p>
@@ -177,6 +177,8 @@ export class RegisterComponent {
     }),
   });
 
+  protected readonly shouldShowError = shouldShowError;
+
   onSubmit(): void {
     if (this.registerForm.invalid || this.isSubmitting()) {
       return;
@@ -202,13 +204,8 @@ export class RegisterComponent {
     });
   }
 
-  shouldShowError(controlName: RegisterControlName, errorKey: string): boolean {
-    const formControl = this.registerForm.controls[controlName];
-    return formControl.touched && formControl.hasError(errorKey);
-  }
-
   shouldShowPasswordPatternRule(rule: PasswordPatternRule): boolean {
-    if (!this.shouldShowError('password', 'pattern')) return false;
+    if (!shouldShowError(this.registerForm.controls.password, 'pattern')) return false;
     const found = this.passwordRules.find((r) => r.key === rule);
     return found ? !found.test(this.registerForm.controls.password.value) : false;
   }
