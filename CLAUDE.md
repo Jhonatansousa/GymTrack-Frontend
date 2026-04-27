@@ -453,12 +453,60 @@ Configure CSP headers at the hosting layer (Netlify/Vercel/Cloudflare):
 - **Tailwind CSS 4 (PostCSS).** Strictly utility classes. Custom CSS in `styles.css` kept to an absolute minimum.
 - **No per-component CSS files** for feature components.
 - **Semantic design tokens** — NEVER hardcode color scales in components (avoid `text-blue-600`, `bg-red-500`).
-  - ALWAYS use semantic names from `tailwind.config.js`: `text-primary`, `bg-surface`, `text-on-surface`, `border-subtle`.
+  - ALWAYS use semantic names: `text-primary`, `bg-surface`, `text-on-primary`, `text-error`, `border-subtle`.
+  - Tokens are defined in `src/styles.css` via `@theme {}` (Tailwind v4 CSS-first config) — NOT in `tailwind.config.js`. See §18 Hurdle H3.
+  - Dark-mode overrides live in `:root.dark {}` in the same file.
   - Centralized palette supports theme switching without touching components.
 - **Dark Mode:** support natively via Tailwind's `dark:` modifier (configured with `class` strategy). Every new component MUST have both light and dark states from day one.
 - **Mobile-First:** start with mobile layout, scale up with `md:` / `lg:` / `xl:`.
 - **Validation UX:** show field errors only after `touched`. Use `data-testid` on every interactive element.
 - **Accessibility:** semantic HTML, ARIA labels where needed, keyboard-navigable controls, focus-visible states.
+
+---
+
+### 11.1 Language & i18n Strategy
+
+> The application targets Brazilian users. All user-facing strings are in
+> Portuguese. All code — identifiers, comments, types, interfaces, test
+> descriptions — is in English. Never mix the two layers.
+
+#### The rule in one line
+**Code speaks English. Users read Portuguese.**
+
+#### What this means in practice
+
+| Layer | Language | Examples |
+|---|---|---|
+| Variable / method / class names | English | `isSubmitting`, `errorMessage`, `onSubmit()` |
+| Interface and type names | English | `RegisterForm`, `PasswordPatternRule` |
+| Template structure and attributes | English | `formControlName`, `data-testid`, `aria-*` |
+| Comments and CLAUDE.md | English | `// reset error before new request` |
+| Test descriptions (`it`, `describe`) | English | `'should disable submit button when email is empty'` |
+| Labels, placeholders, headings | Portuguese | `'Email'`, `'Senha'`, `'Nome'` |
+| Validation error messages | Portuguese | `'O campo é obrigatório.'` |
+| Button labels | Portuguese | `'Entrar'`, `'Registro'`, `'Criar conta'` |
+| Loading states | Portuguese | `'Entrando...'`, `'Registrando...'` |
+| API error messages shown to user | Portuguese | `'Credenciais inválidas.'` |
+
+#### Future i18n
+
+When the product expands to other locales, user-facing strings will be
+extracted into a translation file (e.g. Angular i18n or a lightweight
+`i18n/pt-BR.ts` map). The current approach — Portuguese strings inline
+in templates — is intentional for the MVP. Do NOT introduce an i18n
+library or abstraction until explicitly requested (YAGNI — see §5.1).
+
+When that migration happens, the code layer stays in English and only
+the string extraction changes. No component logic will need to change
+if this rule is followed consistently from the start.
+
+#### Enforcement
+- Any PR that adds English user-facing strings (labels, errors, buttons,
+  headings) in a component targeting Brazilian users is a violation.
+- Any PR that adds Portuguese identifiers, type names, or test
+  descriptions is also a violation.
+- The register component had this inconsistency fixed as of this commit
+  — use it as the reference for correct application of this rule.
 
 ---
 
@@ -593,3 +641,22 @@ Expected AI behavior:
   });
   ```
 - **Applies to:** any provider that needs per-test variation — `ActivatedRoute`, feature flags, config tokens, etc.
+
+#### H3 — Tailwind v4 semantic tokens must be defined via `@theme` in `styles.css`, not in `tailwind.config.js`
+
+- **Problem:** In Tailwind v4 (`@tailwindcss/postcss` + Angular esbuild), color tokens added to `theme.extend.colors` in `tailwind.config.js` do **not** generate Tailwind utility classes (`text-error`, `bg-primary`, etc.). The JS config is processed for settings like `darkMode: 'class'`, but utility class generation for custom colors requires the Tailwind v4 CSS-first approach.
+- **Root cause:** Tailwind v4 uses `@import 'tailwindcss'` and `@theme {}` in CSS as the primary config mechanism. The `tailwind.config.js` color extensions are merged but do not trigger JIT class generation in the Angular esbuild pipeline without explicit `@config` wiring.
+- **Correct pattern:** Define semantic color tokens in `src/styles.css` using `@theme`:
+  ```css
+  @theme {
+    --color-error: #dc2626;
+    --color-primary: #171717;
+    --color-on-primary: #ffffff;
+    --color-surface: #ffffff;
+    --color-subtle: #d4d4d4;
+  }
+  ```
+  Then override per color scheme in `:root.dark {}` for dark mode. The `@theme` block generates the utility classes (`text-error`, `bg-primary`, `text-on-primary`, `border-subtle`, `bg-surface`). Verification: check the compiled `dist/*/browser/styles-*.css` for the `.text-error`, `.bg-primary` selectors.
+- **`tailwind.config.js` role after this:** Only `darkMode: 'class'` and static accent/background tokens (values not driven by dark mode) remain there. Semantic tokens that need dark-mode flipping live exclusively in `@theme` + `:root.dark` in `styles.css`.
+- **Naming convention:** The border token is named `subtle` (not `border-subtle`) so that the generated Tailwind class is `border-subtle` (not `border-border-subtle`). The CSS variable is `--color-subtle`.
+- **Symptoms when misconfigured:** Build succeeds, tests pass, but the component classes (`text-error`, `bg-primary`) produce no CSS rules in the bundle — confirmed by grepping `dist/*/browser/styles-*.css`.

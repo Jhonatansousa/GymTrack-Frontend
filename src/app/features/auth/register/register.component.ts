@@ -34,15 +34,15 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         />
         <div id="register-name-errors">
           @if (shouldShowError('name', 'required')) {
-            <p data-testid="name-error-required" class="text-sm text-red-600">O campo Nome é obrigatório.</p>
+            <p data-testid="name-error-required" class="text-sm text-error">O campo Nome é obrigatório.</p>
           }
           @if (shouldShowError('name', 'minlength')) {
-            <p data-testid="name-error-minlength" class="text-sm text-red-600">
+            <p data-testid="name-error-minlength" class="text-sm text-error">
               Nome deve ter pelo menos 2 caracteres.
             </p>
           }
           @if (shouldShowError('name', 'maxlength')) {
-            <p data-testid="name-error-maxlength" class="text-sm text-red-600">
+            <p data-testid="name-error-maxlength" class="text-sm text-error">
               Nome deve ter no máximo 100 caracteres.
             </p>
           }
@@ -60,13 +60,13 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         />
         <div id="register-email-errors">
           @if (shouldShowError('email', 'required')) {
-            <p data-testid="email-error-required" class="text-sm text-red-600">O campo Email é obrigatório.</p>
+            <p data-testid="email-error-required" class="text-sm text-error">O campo Email é obrigatório.</p>
           }
           @if (shouldShowError('email', 'email')) {
-            <p data-testid="email-error-format" class="text-sm text-red-600">Formato de email inválido.</p>
+            <p data-testid="email-error-format" class="text-sm text-error">Formato de email inválido.</p>
           }
           @if (shouldShowError('email', 'maxlength')) {
-            <p data-testid="email-error-maxlength" class="text-sm text-red-600">
+            <p data-testid="email-error-maxlength" class="text-sm text-error">
               Email deve ter no máximo 254 caracteres.
             </p>
           }
@@ -84,35 +84,35 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         />
         <div id="register-password-errors">
           @if (shouldShowError('password', 'required')) {
-            <p data-testid="password-error-required" class="text-sm text-red-600">O campo Senha é obrigatório.</p>
+            <p data-testid="password-error-required" class="text-sm text-error">O campo Senha é obrigatório.</p>
           }
           @if (shouldShowError('password', 'minlength')) {
-            <p data-testid="password-error-minlength" class="text-sm text-red-600">
+            <p data-testid="password-error-minlength" class="text-sm text-error">
               Senha deve ter pelo menos 8 caracteres.
             </p>
           }
           @if (shouldShowError('password', 'maxlength')) {
-            <p data-testid="password-error-maxlength" class="text-sm text-red-600">
+            <p data-testid="password-error-maxlength" class="text-sm text-error">
               Senha deve ter no máximo 128 caracteres.
             </p>
           }
           @if (shouldShowPasswordPatternRule('uppercase')) {
-            <p data-testid="password-error-uppercase" class="text-sm text-red-600">
+            <p data-testid="password-error-uppercase" class="text-sm text-error">
               Senha deve conter uma letra maiúscula.
             </p>
           }
           @if (shouldShowPasswordPatternRule('lowercase')) {
-            <p data-testid="password-error-lowercase" class="text-sm text-red-600">
+            <p data-testid="password-error-lowercase" class="text-sm text-error">
               Senha deve conter uma letra minúscula.
             </p>
           }
           @if (shouldShowPasswordPatternRule('number')) {
-            <p data-testid="password-error-number" class="text-sm text-red-600">
+            <p data-testid="password-error-number" class="text-sm text-error">
               Senha deve conter um número.
             </p>
           }
           @if (shouldShowPasswordPatternRule('specialChar')) {
-            <p data-testid="password-error-specialChar" class="text-sm text-red-600">
+            <p data-testid="password-error-specialChar" class="text-sm text-error">
               Senha deve conter um caractere especial.
             </p>
           }
@@ -123,8 +123,8 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           [disabled]="registerForm.invalid || isSubmitting()"
           [class.opacity-50]="registerForm.invalid || isSubmitting()"
           [class.cursor-not-allowed]="registerForm.invalid || isSubmitting()"
-          [class.bg-black]="registerForm.valid && !isSubmitting()"
-          [class.text-white]="registerForm.valid && !isSubmitting()"
+          [class.bg-primary]="registerForm.valid && !isSubmitting()"
+          [class.text-on-primary]="registerForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
           @if (isSubmitting()) { Registrando... } @else { Registrar }
@@ -135,7 +135,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
         </button>
 
         @if (errorMessage()) {
-          <p data-testid="register-error" class="text-sm text-red-600">{{ errorMessage() }}</p>
+          <p data-testid="register-error" class="text-sm text-error">{{ errorMessage() }}</p>
         }
       </form>
     </section>

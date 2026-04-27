@@ -30,7 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.email.hasError('required') && loginForm.controls.email.touched) {
-          <p id="login-email-error" class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          <p id="login-email-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
         }
 
         <label for="login-password" class="text-sm font-medium">Senha</label>
@@ -45,7 +45,7 @@ import { AuthService } from '../../../core/services/auth.service';
           class="w-full rounded border px-3 py-2"
         />
         @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
-          <p id="login-password-error" class="text-sm text-red-600">O campo precisa ser preenchido.</p>
+          <p id="login-password-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
         }
 
         <button
@@ -53,15 +53,15 @@ import { AuthService } from '../../../core/services/auth.service';
           [disabled]="loginForm.invalid || isSubmitting()"
           [class.opacity-50]="loginForm.invalid || isSubmitting()"
           [class.cursor-not-allowed]="loginForm.invalid || isSubmitting()"
-          [class.bg-black]="loginForm.valid && !isSubmitting()"
-          [class.text-white]="loginForm.valid && !isSubmitting()"
+          [class.bg-primary]="loginForm.valid && !isSubmitting()"
+          [class.text-on-primary]="loginForm.valid && !isSubmitting()"
           class="w-full rounded border px-3 py-2 font-medium transition"
         >
           @if (isSubmitting()) { Entrando... } @else { Entrar }
         </button>
 
         @if (errorMessage()) {
-          <p data-testid="login-error" class="text-sm text-red-600">{{ errorMessage() }}</p>
+          <p data-testid="login-error" class="text-sm text-error">{{ errorMessage() }}</p>
         }
       </form>
     </section>
