@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -16,7 +16,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
@@ -133,7 +133,7 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
           @if (isSubmitting()) { Registrando... } @else { Registrar }
         </button>
 
-        <button type="button" (click)="goToLogin()" class="self-start text-sm underline">
+        <button type="button" [routerLink]="['/auth']" class="self-start text-sm underline">
           Já tem uma conta?
         </button>
 
@@ -174,10 +174,6 @@ export class RegisterComponent {
       ],
     }),
   });
-
-  goToLogin(): void {
-    void this.router.navigate(['/auth']);
-  }
 
   onSubmit(): void {
     if (this.registerForm.invalid || this.isSubmitting()) {

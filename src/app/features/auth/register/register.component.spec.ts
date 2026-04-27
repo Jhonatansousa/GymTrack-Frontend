@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { Router, RouterLink, provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
 import { Subject, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
@@ -252,13 +253,11 @@ describe('RegisterComponent', () => {
   });
 
   describe('navigation', () => {
-    it('should navigate to login page when clicking the back button', () => {
-      const back = backButton();
-      expect(back).toBeTruthy();
-
-      back?.dispatchEvent(new MouseEvent('click'));
-
-      expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
+    it('should have a back button linking to the login page', () => {
+      const backDe = fixture.debugElement.query(By.css("button[type='button']"));
+      expect(backDe).toBeTruthy();
+      const routerLinkDir = backDe.injector.get(RouterLink);
+      expect(routerLinkDir.urlTree?.toString()).toBe('/auth');
     });
   });
 
