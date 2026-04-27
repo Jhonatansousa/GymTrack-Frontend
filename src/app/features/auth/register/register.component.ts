@@ -147,10 +147,12 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
 export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly uppercaseRegex = /[A-Z]/;
-  private readonly lowercaseRegex = /[a-z]/;
-  private readonly numberRegex = /\d/;
-  private readonly specialCharRegex = /[^A-Za-z0-9]/;
+  private readonly passwordRules: { key: PasswordPatternRule; test: (v: string) => boolean }[] = [
+    { key: 'uppercase', test: (v) => /[A-Z]/.test(v) },
+    { key: 'lowercase', test: (v) => /[a-z]/.test(v) },
+    { key: 'number', test: (v) => /\d/.test(v) },
+    { key: 'specialChar', test: (v) => /[^A-Za-z0-9]/.test(v) },
+  ];
 
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -206,40 +208,8 @@ export class RegisterComponent {
   }
 
   shouldShowPasswordPatternRule(rule: PasswordPatternRule): boolean {
-    const passwordValue = this.registerForm.controls.password.value;
-
-    if (!this.shouldShowError('password', 'pattern')) {
-      return false;
-    }
-
-    if (rule === 'uppercase') {
-      return !this.hasUppercase(passwordValue);
-    }
-
-    if (rule === 'lowercase') {
-      return !this.hasLowercase(passwordValue);
-    }
-
-    if (rule === 'number') {
-      return !this.hasNumber(passwordValue);
-    }
-
-    return !this.hasSpecialChar(passwordValue);
-  }
-
-  hasUppercase(value: string): boolean {
-    return this.uppercaseRegex.test(value);
-  }
-
-  hasLowercase(value: string): boolean {
-    return this.lowercaseRegex.test(value);
-  }
-
-  hasNumber(value: string): boolean {
-    return this.numberRegex.test(value);
-  }
-
-  hasSpecialChar(value: string): boolean {
-    return this.specialCharRegex.test(value);
+    if (!this.shouldShowError('password', 'pattern')) return false;
+    const found = this.passwordRules.find((r) => r.key === rule);
+    return found ? !found.test(this.registerForm.controls.password.value) : false;
   }
 }
