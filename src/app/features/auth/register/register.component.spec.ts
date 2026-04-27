@@ -128,11 +128,11 @@ describe('RegisterComponent', () => {
       expect(inputById('password')).toBeTruthy();
     });
 
-    it('should render a submit button labeled Register and a back button labeled Already a user?', () => {
+    it('should render a Registrar submit button and a Já tem uma conta? back button', () => {
       expect(submitButton()).toBeTruthy();
-      expect(submitButton().textContent).toContain('Register');
+      expect(submitButton().textContent).toContain('Registrar');
       expect(backButton()).toBeTruthy();
-      expect(backButton()?.textContent).toContain('Already a user?');
+      expect(backButton()?.textContent).toContain('Já tem uma conta?');
     });
   });
 
