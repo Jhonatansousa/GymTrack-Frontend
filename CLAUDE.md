@@ -530,6 +530,58 @@ if this rule is followed consistently from the start.
 - Never use `--no-verify` to skip hooks unless the user explicitly asks.
 - Never force-push to `main`.
 
+### 13.1 Semantic Commit Types (Conventional Commits)
+
+| Type       | When to use                                                  |
+|------------|--------------------------------------------------------------|
+| `feat`     | New feature visible to the user or system                    |
+| `fix`      | Bug correction — changes observable behavior                 |
+| `refactor` | Internal restructuring; no behavior change                   |
+| `test`     | Adding or correcting tests; no production code change        |
+| `style`    | Formatting, whitespace, indentation — zero logic change      |
+| `docs`     | Documentation only (`README.md`, `CLAUDE.md`, design docs)   |
+| `chore`    | Config, dependencies, build tooling, CI scripts              |
+| `security` | Vulnerability fix or hardening (see §8 checklist)            |
+
+### 13.2 Commit Message Format (MANDATORY)
+
+```
+type(scope): description in English, imperative mood, no trailing period
+```
+
+- **Scope** maps to a feature or layer: `auth`, `register`, `login`, `divisions`, `exercises`, `sets`, `core`, `shared`, `ci`.
+- **Description:** imperative, lowercase start, ≤ 72 characters, no trailing period.
+- **Established examples from this repo:** `feat(auth): add login form`, `fix(register): handle 409 email-taken`, `refactor(register): collapse four regex fields into passwordRules array`.
+- **One logical change per commit.** If you need "and" in the description, split the commit.
+
+### 13.3 AI Commit Protocol (MANDATORY)
+
+Before executing any `git commit`, the AI MUST:
+
+1. **Never commit without explicit user approval.** Do not run `git commit` speculatively.
+2. **Propose the message first** in the format:
+   > Proposed commit: `` `type(scope): description` ``
+3. **Wait** for the user to reply with "ok", "confirma", or an alternative message.
+4. **Only then** run the commit with the approved message.
+
+This protocol applies to every commit in the session — there are no exceptions for "trivial" or "obvious" changes.
+
+### 13.4 Forbidden Git Commands (AI must refuse, even if asked)
+
+The following commands MUST NOT be run by the AI. If requested, refuse and explain in one line. The user may run them manually.
+
+| Command                         | Why forbidden                                                            |
+|---------------------------------|--------------------------------------------------------------------------|
+| `git push` (any form)           | Publishes to remote — irreversible without force; human decision only    |
+| `git checkout` / `git switch`   | Branch changes affect working tree and context; human decision only      |
+| `git branch -d` / `-D`          | Branch deletion is permanent; human decision only                        |
+| `git reset --hard`              | Discards uncommitted work without recovery                               |
+| `git rebase`                    | Rewrites history; high blast radius on shared branches                   |
+| `git merge`                     | Integration point; human decides when branches combine                   |
+| `git commit --amend`            | Rewrites the previous commit; dangerous if already pushed                |
+| `git commit --no-verify`        | Bypasses hooks — defeats the safety net the project relies on            |
+| `git stash drop`                | Permanently destroys stashed work                                        |
+
 ---
 
 ## 14. Forbidden Behaviors
