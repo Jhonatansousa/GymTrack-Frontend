@@ -254,65 +254,55 @@ describe('LoginComponent', () => {
   });
 
   describe('returnUrl handling', () => {
+    function loginWithReturnUrl(returnUrl: string): void {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl });
+      const localFixture = TestBed.createComponent(LoginComponent);
+      const localComponent = localFixture.componentInstance;
+      localFixture.detectChanges();
+      localComponent.loginForm.controls.email.setValue('user@mail.com');
+      localComponent.loginForm.controls.password.setValue('Valid@123');
+      localFixture.detectChanges();
+      localComponent.onSubmit();
+    }
+
     it('should navigate to a valid returnUrl after successful login', () => {
-      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: '/divisions' });
-
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.email.setValue('user@mail.com');
-      component.loginForm.controls.password.setValue('Valid@123');
-      fixture.detectChanges();
-
-      component.onSubmit();
-
+      loginWithReturnUrl('/divisions');
       expect(navigateSpy).toHaveBeenCalledWith(['/divisions']);
     });
 
     it('should fall back to /dashboard when returnUrl is absent', () => {
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.email.setValue('user@mail.com');
-      component.loginForm.controls.password.setValue('Valid@123');
-      fixture.detectChanges();
-
+      fillForm();
       component.onSubmit();
-
       expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
     });
 
     it('should fall back to /dashboard when returnUrl is an external http:// URL', () => {
-      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: 'http://evil.com/steal' });
-
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
-
-      component.loginForm.controls.email.setValue('user@mail.com');
-      component.loginForm.controls.password.setValue('Valid@123');
-      fixture.detectChanges();
-
-      component.onSubmit();
-
+      loginWithReturnUrl('http://evil.com/steal');
       expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
     });
 
     it('should fall back to /dashboard when returnUrl starts with //', () => {
-      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ returnUrl: '//evil.com' });
+      loginWithReturnUrl('//evil.com');
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
 
-      const fixture = TestBed.createComponent(LoginComponent);
-      const component = fixture.componentInstance;
-      fixture.detectChanges();
+    it('should fall back to /dashboard when returnUrl is a javascript: URI', () => {
+      loginWithReturnUrl('javascript:alert(1)');
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
 
-      component.loginForm.controls.email.setValue('user@mail.com');
-      component.loginForm.controls.password.setValue('Valid@123');
-      fixture.detectChanges();
+    it('should fall back to /dashboard when returnUrl starts with a backslash', () => {
+      loginWithReturnUrl('\\evil.com');
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
 
-      component.onSubmit();
+    it('should fall back to /dashboard when returnUrl has no leading slash', () => {
+      loginWithReturnUrl('dashboard');
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
 
+    it('should fall back to /dashboard when returnUrl starts with /\\', () => {
+      loginWithReturnUrl('/\\evil.com');
       expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
     });
   });

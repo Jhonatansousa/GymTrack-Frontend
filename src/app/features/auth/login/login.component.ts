@@ -115,7 +115,7 @@ export class LoginComponent {
 
   private isSafeReturnUrl(url: string | null): boolean {
     if (!url) return false;
-    return !url.startsWith('http') && !url.startsWith('//');
+    return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
   }
 
   onSubmit(): void {
