@@ -11,60 +11,84 @@ import { shouldShowError } from '../../../shared/utils/form-errors';
   imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
-      <h1 class="text-xl font-semibold">Login</h1>
-
-      <button type="button" [routerLink]="['/auth/register']" class="self-start text-sm underline">
-        Criar conta
-      </button>
-
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
-        <label for="login-email" class="text-sm font-medium">Email</label>
-        <input
-          id="login-email"
-          type="email"
-          formControlName="email"
-          placeholder="Email"
-          autocomplete="email"
-          aria-describedby="login-email-error"
-          [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
-          class="w-full rounded border px-3 py-2"
-        />
-        @if (shouldShowError(loginForm.controls.email, 'required')) {
-          <p id="login-email-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
-        }
-
-        <label for="login-password" class="text-sm font-medium">Senha</label>
-        <input
-          id="login-password"
-          type="password"
-          formControlName="password"
-          placeholder="Senha"
-          autocomplete="current-password"
-          aria-describedby="login-password-error"
-          [attr.aria-invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched ? 'true' : null"
-          class="w-full rounded border px-3 py-2"
-        />
-        @if (shouldShowError(loginForm.controls.password, 'required')) {
-          <p id="login-password-error" class="text-sm text-error">O campo precisa ser preenchido.</p>
-        }
+    <section class="min-h-screen flex items-center justify-center px-4 py-10">
+      <div class="w-full max-w-sm bg-surface border border-border rounded-md p-6 sm:p-8 flex flex-col gap-6">
+        <h1 class="font-serif font-semibold text-3xl sm:text-4xl tracking-[-0.02em] text-text">
+          Login
+        </h1>
 
         <button
-          type="submit"
-          [disabled]="loginForm.invalid || isSubmitting()"
-          [class.opacity-50]="loginForm.invalid || isSubmitting()"
-          [class.cursor-not-allowed]="loginForm.invalid || isSubmitting()"
-          [class.bg-primary]="loginForm.valid && !isSubmitting()"
-          [class.text-on-primary]="loginForm.valid && !isSubmitting()"
-          class="w-full rounded border px-3 py-2 font-medium transition"
+          type="button"
+          [routerLink]="['/auth/register']"
+          class="self-start font-sans text-sm text-text-muted hover:text-text transition-colors duration-150 underline-offset-4 hover:underline"
         >
-          @if (isSubmitting()) { Entrando... } @else { Entrar }
+          Criar conta
         </button>
 
-        @if (errorMessage()) {
-          <p data-testid="login-error" class="text-sm text-error">{{ errorMessage() }}</p>
-        }
-      </form>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label
+              for="login-email"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted"
+            >
+              Email
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              formControlName="email"
+              placeholder="Email"
+              autocomplete="email"
+              aria-describedby="login-email-error"
+              [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (shouldShowError(loginForm.controls.email, 'required') ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+            />
+            @if (shouldShowError(loginForm.controls.email, 'required')) {
+              <p id="login-email-error" class="font-mono text-[11px] text-error tracking-wide">
+                O campo precisa ser preenchido.
+              </p>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label
+              for="login-password"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted"
+            >
+              Senha
+            </label>
+            <input
+              id="login-password"
+              type="password"
+              formControlName="password"
+              placeholder="Senha"
+              autocomplete="current-password"
+              aria-describedby="login-password-error"
+              [attr.aria-invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched ? 'true' : null"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (shouldShowError(loginForm.controls.password, 'required') ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+            />
+            @if (shouldShowError(loginForm.controls.password, 'required')) {
+              <p id="login-password-error" class="font-mono text-[11px] text-error tracking-wide">
+                O campo precisa ser preenchido.
+              </p>
+            }
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="loginForm.invalid || isSubmitting()"
+            class="w-full bg-accent text-on-accent font-sans font-semibold text-sm px-4 py-2.5 rounded transition-all duration-150 hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            @if (isSubmitting()) { Entrando... } @else { Entrar }
+          </button>
+
+          @if (errorMessage()) {
+            <p data-testid="login-error" class="font-mono text-[11px] text-error tracking-wide">
+              {{ errorMessage() }}
+            </p>
+          }
+        </form>
+      </div>
     </section>
   `,
 })

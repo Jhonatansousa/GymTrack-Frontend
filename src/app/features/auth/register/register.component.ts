@@ -19,128 +19,163 @@ type PasswordPatternRule = 'uppercase' | 'lowercase' | 'number' | 'specialChar';
   imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
-      <h1 class="text-xl font-semibold">Registrar</h1>
+    <section class="min-h-screen flex items-center justify-center px-4 py-10">
+      <div class="w-full max-w-sm bg-surface border border-border rounded-md p-6 sm:p-8 flex flex-col gap-6">
+        <h1 class="font-serif font-semibold text-3xl sm:text-4xl tracking-[-0.02em] text-text">
+          Registrar
+        </h1>
 
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-3">
-        <label for="register-name" class="text-sm font-medium">Nome</label>
-        <input
-          id="register-name"
-          type="text"
-          formControlName="name"
-          placeholder="Nome"
-          aria-describedby="register-name-errors"
-          [attr.aria-invalid]="registerForm.controls.name.invalid && registerForm.controls.name.touched ? 'true' : null"
-          class="w-full rounded border px-3 py-2"
-        />
-        <div id="register-name-errors">
-          @if (shouldShowError(registerForm.controls.name, 'required')) {
-            <p data-testid="name-error-required" class="text-sm text-error">O campo Nome é obrigatório.</p>
-          }
-          @if (shouldShowError(registerForm.controls.name, 'minlength')) {
-            <p data-testid="name-error-minlength" class="text-sm text-error">
-              Nome deve ter pelo menos 2 caracteres.
-            </p>
-          }
-          @if (shouldShowError(registerForm.controls.name, 'maxlength')) {
-            <p data-testid="name-error-maxlength" class="text-sm text-error">
-              Nome deve ter no máximo 100 caracteres.
-            </p>
-          }
-        </div>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label
+              for="register-name"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted"
+            >
+              Nome
+            </label>
+            <input
+              id="register-name"
+              type="text"
+              formControlName="name"
+              placeholder="Nome"
+              aria-describedby="register-name-errors"
+              [attr.aria-invalid]="registerForm.controls.name.invalid && registerForm.controls.name.touched ? 'true' : null"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (registerForm.controls.name.invalid && registerForm.controls.name.touched ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+            />
+            <div id="register-name-errors" class="flex flex-col gap-1">
+              @if (shouldShowError(registerForm.controls.name, 'required')) {
+                <p data-testid="name-error-required" class="font-mono text-[11px] text-error tracking-wide">
+                  O campo Nome é obrigatório.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.name, 'minlength')) {
+                <p data-testid="name-error-minlength" class="font-mono text-[11px] text-error tracking-wide">
+                  Nome deve ter pelo menos 2 caracteres.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.name, 'maxlength')) {
+                <p data-testid="name-error-maxlength" class="font-mono text-[11px] text-error tracking-wide">
+                  Nome deve ter no máximo 100 caracteres.
+                </p>
+              }
+            </div>
+          </div>
 
-        <label for="register-email" class="text-sm font-medium">Email</label>
-        <input
-          id="register-email"
-          type="email"
-          formControlName="email"
-          placeholder="Email"
-          autocomplete="email"
-          aria-describedby="register-email-errors"
-          [attr.aria-invalid]="registerForm.controls.email.invalid && registerForm.controls.email.touched ? 'true' : null"
-          class="w-full rounded border px-3 py-2"
-        />
-        <div id="register-email-errors">
-          @if (shouldShowError(registerForm.controls.email, 'required')) {
-            <p data-testid="email-error-required" class="text-sm text-error">O campo Email é obrigatório.</p>
-          }
-          @if (shouldShowError(registerForm.controls.email, 'email')) {
-            <p data-testid="email-error-format" class="text-sm text-error">Formato de email inválido.</p>
-          }
-          @if (shouldShowError(registerForm.controls.email, 'maxlength')) {
-            <p data-testid="email-error-maxlength" class="text-sm text-error">
-              Email deve ter no máximo 254 caracteres.
-            </p>
-          }
-        </div>
+          <div class="flex flex-col gap-1.5">
+            <label
+              for="register-email"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted"
+            >
+              Email
+            </label>
+            <input
+              id="register-email"
+              type="email"
+              formControlName="email"
+              placeholder="Email"
+              autocomplete="email"
+              aria-describedby="register-email-errors"
+              [attr.aria-invalid]="registerForm.controls.email.invalid && registerForm.controls.email.touched ? 'true' : null"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (registerForm.controls.email.invalid && registerForm.controls.email.touched ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+            />
+            <div id="register-email-errors" class="flex flex-col gap-1">
+              @if (shouldShowError(registerForm.controls.email, 'required')) {
+                <p data-testid="email-error-required" class="font-mono text-[11px] text-error tracking-wide">
+                  O campo Email é obrigatório.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.email, 'email')) {
+                <p data-testid="email-error-format" class="font-mono text-[11px] text-error tracking-wide">
+                  Formato de email inválido.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.email, 'maxlength')) {
+                <p data-testid="email-error-maxlength" class="font-mono text-[11px] text-error tracking-wide">
+                  Email deve ter no máximo 254 caracteres.
+                </p>
+              }
+            </div>
+          </div>
 
-        <label for="register-password" class="text-sm font-medium">Senha</label>
-        <input
-          id="register-password"
-          type="password"
-          formControlName="password"
-          placeholder="Senha"
-          autocomplete="new-password"
-          aria-describedby="register-password-errors"
-          [attr.aria-invalid]="registerForm.controls.password.invalid && registerForm.controls.password.touched ? 'true' : null"
-          class="w-full rounded border px-3 py-2"
-        />
-        <div id="register-password-errors">
-          @if (shouldShowError(registerForm.controls.password, 'required')) {
-            <p data-testid="password-error-required" class="text-sm text-error">O campo Senha é obrigatório.</p>
-          }
-          @if (shouldShowError(registerForm.controls.password, 'minlength')) {
-            <p data-testid="password-error-minlength" class="text-sm text-error">
-              Senha deve ter pelo menos 8 caracteres.
-            </p>
-          }
-          @if (shouldShowError(registerForm.controls.password, 'maxlength')) {
-            <p data-testid="password-error-maxlength" class="text-sm text-error">
-              Senha deve ter no máximo 128 caracteres.
-            </p>
-          }
-          @if (shouldShowPasswordPatternRule('uppercase')) {
-            <p data-testid="password-error-uppercase" class="text-sm text-error">
-              Senha deve conter uma letra maiúscula.
-            </p>
-          }
-          @if (shouldShowPasswordPatternRule('lowercase')) {
-            <p data-testid="password-error-lowercase" class="text-sm text-error">
-              Senha deve conter uma letra minúscula.
-            </p>
-          }
-          @if (shouldShowPasswordPatternRule('number')) {
-            <p data-testid="password-error-number" class="text-sm text-error">
-              Senha deve conter um número.
-            </p>
-          }
-          @if (shouldShowPasswordPatternRule('specialChar')) {
-            <p data-testid="password-error-specialChar" class="text-sm text-error">
-              Senha deve conter um caractere especial.
-            </p>
-          }
-        </div>
+          <div class="flex flex-col gap-1.5">
+            <label
+              for="register-password"
+              class="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted"
+            >
+              Senha
+            </label>
+            <input
+              id="register-password"
+              type="password"
+              formControlName="password"
+              placeholder="Senha"
+              autocomplete="new-password"
+              aria-describedby="register-password-errors"
+              [attr.aria-invalid]="registerForm.controls.password.invalid && registerForm.controls.password.touched ? 'true' : null"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (registerForm.controls.password.invalid && registerForm.controls.password.touched ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+            />
+            <div id="register-password-errors" class="flex flex-col gap-1">
+              @if (shouldShowError(registerForm.controls.password, 'required')) {
+                <p data-testid="password-error-required" class="font-mono text-[11px] text-error tracking-wide">
+                  O campo Senha é obrigatório.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.password, 'minlength')) {
+                <p data-testid="password-error-minlength" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve ter pelo menos 8 caracteres.
+                </p>
+              }
+              @if (shouldShowError(registerForm.controls.password, 'maxlength')) {
+                <p data-testid="password-error-maxlength" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve ter no máximo 128 caracteres.
+                </p>
+              }
+              @if (shouldShowPasswordPatternRule('uppercase')) {
+                <p data-testid="password-error-uppercase" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve conter uma letra maiúscula.
+                </p>
+              }
+              @if (shouldShowPasswordPatternRule('lowercase')) {
+                <p data-testid="password-error-lowercase" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve conter uma letra minúscula.
+                </p>
+              }
+              @if (shouldShowPasswordPatternRule('number')) {
+                <p data-testid="password-error-number" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve conter um número.
+                </p>
+              }
+              @if (shouldShowPasswordPatternRule('specialChar')) {
+                <p data-testid="password-error-specialChar" class="font-mono text-[11px] text-error tracking-wide">
+                  Senha deve conter um caractere especial.
+                </p>
+              }
+            </div>
+          </div>
 
-        <button
-          type="submit"
-          [disabled]="registerForm.invalid || isSubmitting()"
-          [class.opacity-50]="registerForm.invalid || isSubmitting()"
-          [class.cursor-not-allowed]="registerForm.invalid || isSubmitting()"
-          [class.bg-primary]="registerForm.valid && !isSubmitting()"
-          [class.text-on-primary]="registerForm.valid && !isSubmitting()"
-          class="w-full rounded border px-3 py-2 font-medium transition"
-        >
-          @if (isSubmitting()) { Registrando... } @else { Registrar }
-        </button>
+          <button
+            type="submit"
+            [disabled]="registerForm.invalid || isSubmitting()"
+            class="w-full bg-accent text-on-accent font-sans font-semibold text-sm px-4 py-2.5 rounded transition-all duration-150 hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            @if (isSubmitting()) { Registrando... } @else { Registrar }
+          </button>
 
-        <button type="button" [routerLink]="['/auth']" class="self-start text-sm underline">
-          Já tem uma conta?
-        </button>
+          <button
+            type="button"
+            [routerLink]="['/auth']"
+            class="self-center font-sans text-sm text-text-muted hover:text-text transition-colors duration-150 underline-offset-4 hover:underline"
+          >
+            Já tem uma conta?
+          </button>
 
-        @if (errorMessage()) {
-          <p data-testid="register-error" class="text-sm text-error">{{ errorMessage() }}</p>
-        }
-      </form>
+          @if (errorMessage()) {
+            <p data-testid="register-error" class="font-mono text-[11px] text-error tracking-wide">
+              {{ errorMessage() }}
+            </p>
+          }
+        </form>
+      </div>
     </section>
   `,
 })
