@@ -114,19 +114,13 @@ describe('RegisterComponent', () => {
       expect(inputByName('password')?.getAttribute('type')).toBe('password');
     });
 
-    it('should have a label associated with the name input', () => {
-      expect(compiled.querySelector("label[for='register-name']")).toBeTruthy();
-      expect(inputById('name')).toBeTruthy();
-    });
-
-    it('should have a label associated with the email input', () => {
-      expect(compiled.querySelector("label[for='register-email']")).toBeTruthy();
-      expect(inputById('email')).toBeTruthy();
-    });
-
-    it('should have a label associated with the password input', () => {
-      expect(compiled.querySelector("label[for='register-password']")).toBeTruthy();
-      expect(inputById('password')).toBeTruthy();
+    it.each<{ field: RegisterControlKey }>([
+      { field: 'name' },
+      { field: 'email' },
+      { field: 'password' },
+    ])('should have a label associated with the $field input', ({ field }) => {
+      expect(compiled.querySelector(`label[for='register-${field}']`)).toBeTruthy();
+      expect(inputById(field)).toBeTruthy();
     });
 
     it('should render a Registrar submit button and a Já tem uma conta? back button', () => {
@@ -138,47 +132,22 @@ describe('RegisterComponent', () => {
   });
 
   describe('aria accessibility', () => {
-    it('should set aria-invalid="true" on name input when invalid and touched', () => {
-      setControlValue('name', '');
-      expect(inputById('name')?.getAttribute('aria-invalid')).toBe('true');
-    });
+    it.each<{ field: RegisterControlKey; invalidValue: string; validValue: string; describedById: string }>([
+      { field: 'name', invalidValue: '', validValue: 'John', describedById: 'register-name-errors' },
+      { field: 'email', invalidValue: '', validValue: 'user@mail.com', describedById: 'register-email-errors' },
+      { field: 'password', invalidValue: '', validValue: 'Valid@123', describedById: 'register-password-errors' },
+    ])(
+      'should have correct aria attributes on $field input',
+      ({ field, invalidValue, validValue, describedById }) => {
+        expect(inputById(field)?.getAttribute('aria-describedby')).toBe(describedById);
 
-    it('should not set aria-invalid on name input when valid and touched', () => {
-      setControlValue('name', 'John');
-      expect(inputById('name')?.getAttribute('aria-invalid')).toBeNull();
-    });
+        setControlValue(field, invalidValue);
+        expect(inputById(field)?.getAttribute('aria-invalid')).toBe('true');
 
-    it('should have aria-describedby pointing to name error container on name input', () => {
-      expect(inputById('name')?.getAttribute('aria-describedby')).toBe('register-name-errors');
-    });
-
-    it('should set aria-invalid="true" on email input when invalid and touched', () => {
-      setControlValue('email', '');
-      expect(inputById('email')?.getAttribute('aria-invalid')).toBe('true');
-    });
-
-    it('should not set aria-invalid on email input when valid and touched', () => {
-      setControlValue('email', 'user@mail.com');
-      expect(inputById('email')?.getAttribute('aria-invalid')).toBeNull();
-    });
-
-    it('should have aria-describedby pointing to email error container on email input', () => {
-      expect(inputById('email')?.getAttribute('aria-describedby')).toBe('register-email-errors');
-    });
-
-    it('should set aria-invalid="true" on password input when invalid and touched', () => {
-      setControlValue('password', '');
-      expect(inputById('password')?.getAttribute('aria-invalid')).toBe('true');
-    });
-
-    it('should not set aria-invalid on password input when valid and touched', () => {
-      setControlValue('password', 'Valid@123');
-      expect(inputById('password')?.getAttribute('aria-invalid')).toBeNull();
-    });
-
-    it('should have aria-describedby pointing to password error container on password input', () => {
-      expect(inputById('password')?.getAttribute('aria-describedby')).toBe('register-password-errors');
-    });
+        setControlValue(field, validValue);
+        expect(inputById(field)?.getAttribute('aria-invalid')).toBeNull();
+      }
+    );
   });
 
   describe('submit button state', () => {
@@ -262,74 +231,41 @@ describe('RegisterComponent', () => {
   });
 
   describe('validation errors (touched)', () => {
-    it('should display an error message when the name field is empty and touched', () => {
-      setControlValue('name', '');
+    it.each<{ field: RegisterControlKey; testId: string }>([
+      { field: 'name', testId: 'name-error-required' },
+      { field: 'email', testId: 'email-error-required' },
+      { field: 'password', testId: 'password-error-required' },
+    ])('should display required error for $field when empty and touched', ({ field, testId }) => {
+      setControlValue(field, '');
 
-      expect(control('name').hasError('required')).toBeTruthy();
-      expect(queryByTestId('name-error-required')).toBeTruthy();
+      expect(control(field).hasError('required')).toBeTruthy();
+      expect(queryByTestId(testId)).toBeTruthy();
     });
 
-    it('should display an error message when the email field is empty and touched', () => {
-      setControlValue('email', '');
+    it.each<{ field: RegisterControlKey; value: string; error: string; testId: string }>([
+      { field: 'email', value: 'invalid-email', error: 'email', testId: 'email-error-format' },
+      { field: 'password', value: 'Ab1@x', error: 'minlength', testId: 'password-error-minlength' },
+      { field: 'name', value: 'A', error: 'minlength', testId: 'name-error-minlength' },
+      { field: 'name', value: 'a'.repeat(101), error: 'maxlength', testId: 'name-error-maxlength' },
+      { field: 'email', value: `${'a'.repeat(250)}@a.com`, error: 'maxlength', testId: 'email-error-maxlength' },
+      { field: 'password', value: 'a'.repeat(129), error: 'maxlength', testId: 'password-error-maxlength' },
+    ])('should display $error error on $field when value is set and touched', ({ field, value, error, testId }) => {
+      setControlValue(field, value);
 
-      expect(control('email').hasError('required')).toBeTruthy();
-      expect(queryByTestId('email-error-required')).toBeTruthy();
+      expect(control(field).hasError(error)).toBeTruthy();
+      expect(queryByTestId(testId)).toBeTruthy();
     });
 
-    it('should display an error message when the password field is empty and touched', () => {
-      setControlValue('password', '');
-
-      expect(control('password').hasError('required')).toBeTruthy();
-      expect(queryByTestId('password-error-required')).toBeTruthy();
-    });
-
-    it('should display an error message when the email field has an invalid format and is touched', () => {
-      setControlValue('email', 'invalid-email');
-
-      expect(control('email').hasError('email')).toBeTruthy();
-      expect(queryByTestId('email-error-format')).toBeTruthy();
-    });
-
-    it('should display an error message when the password is shorter than 8 characters and touched', () => {
-      setControlValue('password', 'Ab1@x');
-
-      expect(control('password').hasError('minlength')).toBeTruthy();
-      expect(queryByTestId('password-error-minlength')).toBeTruthy();
-    });
-
-    it('should display an uppercase error message when the password has no uppercase letter and is touched', () => {
-      setControlValue('password', 'valid@123');
+    it.each<{ value: string; testId: string }>([
+      { value: 'valid@123', testId: 'password-error-uppercase' },
+      { value: 'VALID@123', testId: 'password-error-lowercase' },
+      { value: 'Valid@Password', testId: 'password-error-number' },
+      { value: 'Valid1234', testId: 'password-error-specialChar' },
+    ])('should display pattern error for $testId when password is "$value" and touched', ({ value, testId }) => {
+      setControlValue('password', value);
 
       expect(control('password').hasError('pattern')).toBeTruthy();
-      expect(queryByTestId('password-error-uppercase')).toBeTruthy();
-    });
-
-    it('should display a lowercase error message when the password has no lowercase letter and is touched', () => {
-      setControlValue('password', 'VALID@123');
-
-      expect(control('password').hasError('pattern')).toBeTruthy();
-      expect(queryByTestId('password-error-lowercase')).toBeTruthy();
-    });
-
-    it('should display a number error message when the password has no number and is touched', () => {
-      setControlValue('password', 'Valid@Password');
-
-      expect(control('password').hasError('pattern')).toBeTruthy();
-      expect(queryByTestId('password-error-number')).toBeTruthy();
-    });
-
-    it('should display a specialChar error message when the password has no special character and is touched', () => {
-      setControlValue('password', 'Valid1234');
-
-      expect(control('password').hasError('pattern')).toBeTruthy();
-      expect(queryByTestId('password-error-specialChar')).toBeTruthy();
-    });
-
-    it('should display an error message when the name is shorter than 2 characters and is touched', () => {
-      setControlValue('name', 'A');
-
-      expect(control('name').hasError('minlength')).toBeTruthy();
-      expect(queryByTestId('name-error-minlength')).toBeTruthy();
+      expect(queryByTestId(testId)).toBeTruthy();
     });
 
     it('should NOT display a name minlength error when name has 2 or more characters', () => {
@@ -338,52 +274,19 @@ describe('RegisterComponent', () => {
       expect(control('name').hasError('minlength')).toBeFalsy();
       expect(queryByTestId('name-error-minlength')).toBeNull();
     });
-
-    it('should display an error message when the name exceeds 100 characters and is touched', () => {
-      setControlValue('name', 'a'.repeat(101));
-
-      expect(control('name').hasError('maxlength')).toBeTruthy();
-      expect(queryByTestId('name-error-maxlength')).toBeTruthy();
-    });
-
-    it('should display an error message when the email exceeds 254 characters and is touched', () => {
-      setControlValue('email', `${'a'.repeat(250)}@a.com`);
-
-      expect(control('email').hasError('maxlength')).toBeTruthy();
-      expect(queryByTestId('email-error-maxlength')).toBeTruthy();
-    });
-
-    it('should display an error message when the password exceeds 128 characters and is touched', () => {
-      setControlValue('password', 'a'.repeat(129));
-
-      expect(control('password').hasError('maxlength')).toBeTruthy();
-      expect(queryByTestId('password-error-maxlength')).toBeTruthy();
-    });
   });
 
   describe('error suppression (untouched / valid)', () => {
-    it('should NOT display a name required error when name is invalid but untouched', () => {
-      setControlValue('name', '', false);
+    it.each<{ field: RegisterControlKey; value: string; testId: string }>([
+      { field: 'name', value: '', testId: 'name-error-required' },
+      { field: 'email', value: 'invalid-email', testId: 'email-error-format' },
+      { field: 'password', value: 'abc', testId: 'password-error-minlength' },
+    ])('should NOT display $field error when invalid but untouched', ({ field, value, testId }) => {
+      setControlValue(field, value, false);
 
-      expect(control('name').invalid).toBeTruthy();
-      expect(control('name').touched).toBe(false);
-      expect(queryByTestId('name-error-required')).toBeNull();
-    });
-
-    it('should NOT display an email format error when email is invalid but untouched', () => {
-      setControlValue('email', 'invalid-email', false);
-
-      expect(control('email').invalid).toBeTruthy();
-      expect(control('email').touched).toBe(false);
-      expect(queryByTestId('email-error-format')).toBeNull();
-    });
-
-    it('should NOT display a password minlength error when password is invalid but untouched', () => {
-      setControlValue('password', 'abc', false);
-
-      expect(control('password').invalid).toBeTruthy();
-      expect(control('password').touched).toBe(false);
-      expect(queryByTestId('password-error-minlength')).toBeNull();
+      expect(control(field).invalid).toBeTruthy();
+      expect(control(field).touched).toBe(false);
+      expect(queryByTestId(testId)).toBeNull();
     });
 
     it('should NOT display a name required error when name is valid and touched', () => {
