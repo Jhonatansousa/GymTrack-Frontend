@@ -566,6 +566,31 @@ Before executing any `git commit`, the AI MUST:
 
 This protocol applies to every commit in the session — there are no exceptions for "trivial" or "obvious" changes.
 
+### 13.5 Commit Cadence (MANDATORY)
+
+The AI MUST propose a commit at the end of every completed unit of work:
+
+- After each **TDD cycle** (Red → Green → Refactor complete).
+- After each **feature slice** (new component, service, guard, interceptor, or route wired and tested).
+- After each **refactor** that leaves all tests green.
+- After each **security hardening** or **bug fix**.
+
+**Commit message rules:**
+- **One sentence.** Use two only when the change genuinely spans two orthogonal concerns that cannot be split into separate commits.
+- **English only.** No Portuguese in commit messages.
+- **Professional standard** — imperative mood, lowercase start, no trailing period, ≤ 72 characters.
+- Follow the `type(scope): description` format defined in §13.2.
+
+**Examples of correct cadence:**
+```
+feat(divisions): add DivisionsComponent with empty-state template
+test(divisions): cover DivisionsComponent render and empty-state
+refactor(divisions): extract division-card into standalone dumb component
+security(auth): restrict authGuard to same-origin returnUrl paths
+```
+
+Do not batch multiple unrelated changes into one commit. If staging all modified files would produce a message requiring "and", split the commit.
+
 ### 13.4 Forbidden Git Commands (AI must refuse, even if asked)
 
 The following commands MUST NOT be run by the AI. If requested, refuse and explain in one line. The user may run them manually.
