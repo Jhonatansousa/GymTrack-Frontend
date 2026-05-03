@@ -1,39 +1,48 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
 
-:root {
-  /* Light mode */
-  --color-primary: #146ef5;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-text: #0f172a;
+@theme {
+  /* Canvas & Elevation */
+  --color-canvas:         #0d0d0e;
+  --color-surface:        #16161a;
+  --color-surface-raised: #1c1c22;
+
+  /* Borders */
+  --color-border:         #2a2a32;
+  --color-border-strong:  #3a3a44;
+
+  /* Text */
+  --color-text:           #e8e6e0;
+  --color-text-muted:     #9b9892;
+  --color-text-faint:     #6a6862;
+
+  /* Accent */
+  --color-accent:         #d4ff4f;
+  --color-accent-dim:     #8a9d2e;
+  --color-on-accent:      #0d0d0e;
+
+  /* Semantic status */
+  --color-success:        #4fd494;
+  --color-warn:           #ff8b3d;
+  --color-error:          #ff5959;
+  --color-info:           #7fb3ff;
+
+  /* Legacy aliases — remove after auth components are refactored */
+  --color-primary:        #d4ff4f;
+  --color-on-primary:     #0d0d0e;
+  --color-subtle:         #2a2a32;
+
+  /* Font families */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans:  'Inter Tight', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
 }
 
-:root.dark {
-  /* Dark mode */
-  --color-primary: #60a5fa;
-  --color-background: #0a101d;
-  --color-surface: #0f172a;
-  --color-text: #e2e8f0;
-}
-
-html,
-body {
-  @apply min-h-full antialiased;
-  background-color: var(--color-background);
+html, body {
+  background-color: var(--color-canvas);
   color: var(--color-text);
-}
-
-/* Optional: apply semantic surface and primary colors to components */
-.button {
-  @apply px-4 py-2 rounded font-semibold;
-  background-color: var(--color-primary);
-  color: var(--color-surface);
-}
-
-.card {
-  @apply p-4 rounded shadow;
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(212, 255, 79, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(127, 179, 255, 0.03) 0%, transparent 50%);
 }
