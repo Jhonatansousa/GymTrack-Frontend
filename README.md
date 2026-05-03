@@ -26,18 +26,25 @@ Em resumo: aprender e aplicar disciplina de desenvolvimento em um produto real, 
 ### Funcionalidades já implementadas no Frontend
 
 - Roteamento inicial com lazy loading
-- Fluxo de autenticação inicial com telas de login e registro
+- Fluxo completo de autenticação (login e registro) entregue via ciclo TDD (Red → Green → Refactor)
 - Formulários reativos tipados para login e registro
 - Validações de formulário no cliente (required, formato de email, regras de senha)
 - Navegação entre login e registro
-- Testes unitários cobrindo comportamento de componentes e validações
+- Integração HTTP real com os endpoints `/auth/login` e `/auth/register`
+- Autenticação baseada em **HttpOnly cookie** (JWT emitido pelo backend; nenhum token armazenado em JS)
+- `withCredentials` enviado automaticamente em chamadas para o backend via interceptor funcional
+- Interceptor funcional de erros com redirecionamento para `/auth` em respostas `401`
+- Tratamento explícito de erros HTTP (401, 409, etc.) na camada de UI
+- Auth Guard funcional consumindo `/auth/me` para proteger rotas
+- Redirecionamento para `/dashboard` após login/registro bem-sucedidos
+- Tela inicial pós-login (dashboard mínimo) protegida por guard
+- Testes unitários cobrindo o fluxo completo de autenticação (componentes, serviço, guard e interceptors)
 
 ### Funcionalidades ainda em construção
 
-- Integração HTTP real com endpoints do backend (auth, divisões, exercícios e séries)
-- Interceptor funcional para JWT e tratamento centralizado de erros
-- Fluxo pós-login (dashboard principal)
 - Gestão completa de treino (CRUD de divisões, exercícios e sets)
+- Conteúdo real do dashboard pós-login (visão consolidada do treino)
+- Endpoint de logout integrado e ação de sair na UI
 - Melhorias de UX, feedback assíncrono e acessibilidade avançada
 
 ## 3. Stack e Versões
@@ -75,6 +82,20 @@ src/
 	app/
 		app.config.ts
 		app.routes.ts
+		core/
+			guards/
+				auth.guard.ts
+				auth.guard.spec.ts
+			interceptors/
+				credentials.interceptor.ts
+				credentials.interceptor.spec.ts
+				error.interceptor.ts
+				error.interceptor.spec.ts
+			models/
+				auth.model.ts
+			services/
+				auth.service.ts
+				auth.service.spec.ts
 		features/
 			auth/
 				login/
@@ -83,6 +104,16 @@ src/
 				register/
 					register.component.ts
 					register.component.spec.ts
+			dashboard/
+				dashboard.component.ts
+				dashboard.component.spec.ts
+		shared/
+			utils/
+				form-errors.ts
+				form-errors.spec.ts
+	environments/
+		environment.ts
+		environment.development.ts
 ```
 
 ### Rotas atuais
@@ -90,6 +121,7 @@ src/
 - `/` -> redireciona para `/auth`
 - `/auth` -> tela de login
 - `/auth/register` -> tela de cadastro
+- `/dashboard` -> área pós-login, protegida por `authGuard`
 
 ### Direção arquitetural alvo
 
@@ -196,10 +228,11 @@ npm run lint
 
 ### Curto prazo
 
-- Integrar login/registro com backend real
-- Persistência e leitura de token JWT
-- Guardas de rota para áreas autenticadas
-- Tela inicial pós-login
+- [x] Integrar login/registro com backend real
+- [x] Sessão autenticada via HttpOnly cookie (sem token em JS)
+- [x] Guardas de rota para áreas autenticadas
+- [x] Tela inicial pós-login
+- [ ] Endpoint e ação de logout integrados na UI
 
 ### Médio prazo
 
@@ -210,10 +243,10 @@ npm run lint
 
 ### Próximos passos de arquitetura
 
-- Interceptors funcionais (auth + error)
-- Padronização de models/DTOs tipados
-- Organização de serviços por domínio
-- Evolução da estratégia de estado e cache local
+- [x] Interceptors funcionais (credenciais + erros)
+- [ ] Padronização de models/DTOs tipados para divisões, exercícios e sets
+- [ ] Organização de serviços por domínio (divisões, exercícios, sets)
+- [ ] Evolução da estratégia de estado e cache local
 
 ## 10. Filosofia do Repositório
 
