@@ -36,4 +36,13 @@ describe('csrfInterceptor', () => {
 
     req.flush({});
   });
+
+  it('should NOT attach the X-XSRF-TOKEN header on requests to external URLs', () => {
+    http.post('https://external.example.com/data', {}).subscribe();
+
+    const req = httpTesting.expectOne('https://external.example.com/data');
+    expect(req.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+
+    req.flush({});
+  });
 });
