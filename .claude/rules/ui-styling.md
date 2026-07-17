@@ -1,5 +1,4 @@
-<!-- Applies to templates (*.html) and src/styles.css. Every new component ships with
-     both light and dark states from day one. -->
+<!-- Applies to templates (*.html) and src/styles.css. When a component receives styling, it must support both light and dark states in the same commit — never add dark mode as a follow-up patch -->
 
 # UI, Styling & i18n
 
