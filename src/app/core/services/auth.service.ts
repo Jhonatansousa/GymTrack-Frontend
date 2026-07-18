@@ -21,4 +21,8 @@ export class AuthService {
   checkSession(): Observable<AuthResponse> {
     return this.http.get<AuthResponse>(`${this.baseUrl}/me`);
   }
+
+  logout(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/logout`, {});
+  }
 }
