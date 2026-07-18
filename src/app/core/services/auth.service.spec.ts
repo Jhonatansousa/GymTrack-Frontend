@@ -59,5 +59,11 @@ describe('AuthService', () => {
     req.flush({ results: {} });
   });
 
-  
+  it('should POST to /auth/logout', () => {
+    service.logout().subscribe();
+
+    const req = httpTesting.expectOne(`${environment.apiBaseUrl}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ results: {} });
+  });
 });
