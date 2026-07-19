@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TimeoutError } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { shouldShowError } from '../../../shared/utils/form-errors';
@@ -118,6 +119,16 @@ export class LoginComponent {
     return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
   }
 
+  private resolveErrorMessage(err: unknown): string {
+    if (err instanceof TimeoutError) {
+      return 'O servidor demorou para responder. Tente novamente.';
+    }
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      return 'Credenciais inválidas. Verifique seu email e senha.';
+    }
+    return 'Falha ao autenticar. Verifique suas credenciais.';
+  }
+
   onSubmit(): void {
     if (this.loginForm.invalid || this.isSubmitting()) {
       return;
@@ -136,11 +147,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err instanceof HttpErrorResponse && err.status === 401
-            ? 'Credenciais inválidas. Verifique seu email e senha.'
-            : 'Falha ao autenticar. Verifique suas credenciais.',
-        );
+        this.errorMessage.set(this.resolveErrorMessage(err));
       },
     });
   }

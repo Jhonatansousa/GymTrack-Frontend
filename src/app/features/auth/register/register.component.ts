@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TimeoutError } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { shouldShowError } from '../../../shared/utils/form-errors';
@@ -230,13 +231,19 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err instanceof HttpErrorResponse && err.status === 409
-            ? 'Este email já está cadastrado.'
-            : 'Falha ao registrar. Tente novamente.',
-        );
+        this.errorMessage.set(this.resolveErrorMessage(err));
       },
     });
+  }
+
+  private resolveErrorMessage(err: unknown): string {
+    if (err instanceof TimeoutError) {
+      return 'O servidor demorou para responder. Tente novamente.';
+    }
+    if (err instanceof HttpErrorResponse && err.status === 409) {
+      return 'Este email já está cadastrado.';
+    }
+    return 'Falha ao registrar. Tente novamente.';
   }
 
   shouldShowPasswordPatternRule(rule: PasswordPatternRule): boolean {

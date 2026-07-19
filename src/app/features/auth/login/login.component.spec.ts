@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { Subject, TimeoutError, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -231,6 +231,18 @@ describe('LoginComponent', () => {
       fixture.detectChanges();
 
       expect(queryByTestId('login-error')?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
+    });
+
+    it('should display a specific message when login times out', () => {
+      mockLoginError(new TimeoutError());
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(queryByTestId('login-error')?.textContent?.trim()).toBe(
+        'O servidor demorou para responder. Tente novamente.',
+      );
     });
 
     it('should clear error message when a new submit is attempted', () => {

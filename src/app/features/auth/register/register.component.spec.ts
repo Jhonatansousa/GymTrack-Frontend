@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { TestBed } from '@angular/core/testing';
 import { Router, RouterLink, provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
-import { Subject, of, throwError } from 'rxjs';
+import { Subject, TimeoutError, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -373,6 +373,18 @@ describe('RegisterComponent', () => {
       fixture.detectChanges();
 
       expect(queryByTestId('register-error')?.textContent?.trim()).toBe('Este email já está cadastrado.');
+    });
+
+    it('should display a specific message when registration times out', () => {
+      mockRegisterError(new TimeoutError());
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(queryByTestId('register-error')?.textContent?.trim()).toBe(
+        'O servidor demorou para responder. Tente novamente.',
+      );
     });
   });
 
