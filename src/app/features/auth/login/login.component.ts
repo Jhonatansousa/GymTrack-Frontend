@@ -99,7 +99,11 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
 
   readonly isSubmitting = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(
+    this.route.snapshot.queryParamMap.has('sessionCheckFailed')
+      ? 'Não foi possível confirmar sua sessão. Tente novamente.'
+      : null,
+  );
 
   protected readonly shouldShowError = shouldShowError;
 
