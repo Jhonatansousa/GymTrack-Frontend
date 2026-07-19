@@ -62,4 +62,30 @@ describe('authGuard', () => {
 
     expect(result).toEqual(router.createUrlTree(['/auth']));
   });
+
+  it('should return a UrlTree to /auth with sessionCheckFailed query param when session check fails with a 5xx error', () => {
+    let result: boolean | UrlTree | undefined;
+
+    runGuard().subscribe((v) => (result = v));
+    httpTesting
+      .expectOne(`${environment.apiBaseUrl}/auth/me`)
+      .flush({}, { status: 500, statusText: 'Server Error' });
+
+    expect(result).toEqual(
+      router.createUrlTree(['/auth'], { queryParams: { sessionCheckFailed: 'true' } }),
+    );
+  });
+
+  it('should return a UrlTree to /auth with sessionCheckFailed query param when session check fails with a network error', () => {
+    let result: boolean | UrlTree | undefined;
+
+    runGuard().subscribe((v) => (result = v));
+    httpTesting
+      .expectOne(`${environment.apiBaseUrl}/auth/me`)
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+
+    expect(result).toEqual(
+      router.createUrlTree(['/auth'], { queryParams: { sessionCheckFailed: 'true' } }),
+    );
+  });
 });
