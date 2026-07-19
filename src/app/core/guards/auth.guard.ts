@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
@@ -9,6 +10,11 @@ export const authGuard: CanActivateFn = () => {
 
   return inject(AuthService).checkSession().pipe(
     map(() => true),
-    catchError(() => of(router.createUrlTree(['/auth']))),
+    catchError((error: unknown) => {
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        return of(router.createUrlTree(['/auth']));
+      }
+      return of(router.createUrlTree(['/auth'], { queryParams: { sessionCheckFailed: 'true' } }));
+    }),
   );
 };
