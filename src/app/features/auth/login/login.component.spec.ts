@@ -319,6 +319,19 @@ describe('LoginComponent', () => {
     });
   });
 
+  describe('session check failure feedback', () => {
+    it('should display a session-check-failed message when sessionCheckFailed query param is present', () => {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ sessionCheckFailed: 'true' });
+      const localFixture = TestBed.createComponent(LoginComponent);
+      localFixture.detectChanges();
+      const localCompiled = localFixture.nativeElement as HTMLElement;
+
+      expect(localCompiled.querySelector("[data-testid='login-error']")?.textContent?.trim()).toBe(
+        'Não foi possível confirmar sua sessão. Tente novamente.',
+      );
+    });
+  });
+
   describe('aria accessibility', () => {
     it('should set aria-invalid="true" on email input when invalid and touched', () => {
       setControlValue('email', '');
