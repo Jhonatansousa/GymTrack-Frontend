@@ -32,4 +32,11 @@ export const routes: Routes = [
                 (m) => m.DashboardComponent
             ),
     },
+    {
+        path: '**',
+        loadComponent: () =>
+            import('./shared/not-found/not-found.component').then(
+                (m) => m.NotFoundComponent
+            ),
+    },
 ];
