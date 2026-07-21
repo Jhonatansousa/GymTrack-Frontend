@@ -332,6 +332,26 @@ describe('LoginComponent', () => {
     });
   });
 
+  describe('email format validation', () => {
+    it('should display an email format error when email format is invalid and touched', () => {
+      setControlValue('email', 'jhonatan@');
+
+      expect(queryByTestId('email-error-format')?.textContent?.trim()).toBe('Formato de email inválido.');
+    });
+
+    it('should NOT display an email format error when email is empty and touched', () => {
+      setControlValue('email', '');
+
+      expect(queryByTestId('email-error-format')).toBeNull();
+    });
+
+    it('should NOT display an email format error when email is valid and touched', () => {
+      setControlValue('email', 'user@mail.com');
+
+      expect(queryByTestId('email-error-format')).toBeNull();
+    });
+  });
+
   describe('aria accessibility', () => {
     it('should set aria-invalid="true" on email input when invalid and touched', () => {
       setControlValue('email', '');
