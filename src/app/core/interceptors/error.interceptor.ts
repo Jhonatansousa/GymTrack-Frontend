@@ -9,7 +9,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        void router.navigate(['/auth'], { replaceUrl: true });
+        const currentUrl = router.url;
+        const returnUrlParams = currentUrl.startsWith('/auth')
+          ? {}
+          : { queryParams: { returnUrl: currentUrl } };
+        void router.navigate(['/auth'], { replaceUrl: true, ...returnUrlParams });
       }
       return throwError(() => error);
     }),
