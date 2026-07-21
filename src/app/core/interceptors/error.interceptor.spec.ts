@@ -32,7 +32,25 @@ describe('errorInterceptor', () => {
     vi.restoreAllMocks();
   });
 
-  it('should redirect to /auth with replaceUrl:true and propagate HttpErrorResponse on 401', () => {
+  it('should redirect to /auth with replaceUrl:true and returnUrl, and propagate HttpErrorResponse on 401', () => {
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/dashboard/settings');
+    let capturedError: unknown;
+
+    http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
+    httpTesting.expectOne('/test').flush({}, { status: 401, statusText: 'Unauthorized' });
+
+    expect(navigateSpy).toHaveBeenCalledExactlyOnceWith(['/auth'], {
+      replaceUrl: true,
+      queryParams: { returnUrl: '/dashboard/settings' },
+    });
+    expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+    expect((capturedError as HttpErrorResponse).status).toBe(401);
+  });
+
+  it('should redirect to /auth without returnUrl when the current URL is already an auth page', () => {
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/auth');
     let capturedError: unknown;
 
     http.get('/test').subscribe({ error: (err) => { capturedError = err; } });
