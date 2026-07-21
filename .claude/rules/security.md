@@ -43,6 +43,19 @@ these as **same-site but different-origin**, so cookies need explicit credential
   401, and `withCredentials` looks broken. The fix is always CORS + `Access-Control-Allow-Credentials`
   on the backend.
 
+### No Refresh Token (by design)
+
+**Decision:** there is no refresh-token flow. Session TTL is controlled entirely by the backend
+cookie's expiration. When the session expires, the user gets a 401 and must log in again — the
+frontend does not attempt silent renewal.
+
+- **Why:** fewer moving parts, no refresh-token storage or rotation logic to secure, and a smaller
+  attack surface overall. This matches the project's current stage — a long-lived-session UX isn't
+  a real requirement yet, so building for it now would be speculative.
+- **Revisit when:** the session TTL is found to be too short for real user workflows, or the project
+  grows into a scenario that genuinely needs long-lived sessions (e.g. persistent mobile clients).
+  Until then, treat "add a refresh token" as YAGNI.
+
 ## 2. XSS Prevention
 
 - **Trust Angular's default sanitization.** `{{ interpolation }}` and `[property]` binding are safe.
