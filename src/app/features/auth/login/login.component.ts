@@ -42,13 +42,20 @@ import { shouldShowError } from '../../../shared/utils/form-errors';
               autocomplete="email"
               aria-describedby="login-email-error"
               [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
-              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (shouldShowError(loginForm.controls.email, 'required') ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
             />
-            @if (shouldShowError(loginForm.controls.email, 'required')) {
-              <p id="login-email-error" class="font-mono text-[11px] text-error tracking-wide">
-                O campo precisa ser preenchido.
-              </p>
-            }
+            <div id="login-email-error" class="flex flex-col gap-1">
+              @if (shouldShowError(loginForm.controls.email, 'required')) {
+                <p data-testid="email-error-required" class="font-mono text-[11px] text-error tracking-wide">
+                  O campo precisa ser preenchido.
+                </p>
+              }
+              @if (shouldShowError(loginForm.controls.email, 'email')) {
+                <p data-testid="email-error-format" class="font-mono text-[11px] text-error tracking-wide">
+                  Formato de email inválido.
+                </p>
+              }
+            </div>
           </div>
 
           <div class="flex flex-col gap-1.5">
