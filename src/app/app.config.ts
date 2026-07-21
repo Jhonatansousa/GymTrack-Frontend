@@ -3,6 +3,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { provideRouter } from '@angular/router';
 
 import { credentialsInterceptor } from './core/interceptors/credentials.interceptor';
+import { csrfInterceptor } from './core/interceptors/csrf.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { routes } from './app.routes';
 
@@ -12,7 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(
       withFetch(),
-      withInterceptors([credentialsInterceptor, errorInterceptor]),
+      withInterceptors([credentialsInterceptor, csrfInterceptor, errorInterceptor]),
     ),
   ],
 };

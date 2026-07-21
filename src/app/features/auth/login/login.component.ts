@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TimeoutError } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { shouldShowError } from '../../../shared/utils/form-errors';
@@ -41,13 +42,20 @@ import { shouldShowError } from '../../../shared/utils/form-errors';
               autocomplete="email"
               aria-describedby="login-email-error"
               [attr.aria-invalid]="loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'true' : null"
-              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (shouldShowError(loginForm.controls.email, 'required') ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
+              [class]="'w-full bg-surface-raised border rounded px-3 py-2.5 font-sans text-sm text-text placeholder:text-text-faint focus:outline-none focus:ring-1 transition-colors duration-150 ' + (loginForm.controls.email.invalid && loginForm.controls.email.touched ? 'border-error focus:border-error focus:ring-error/20' : 'border-border focus:border-border-strong focus:ring-accent/30')"
             />
-            @if (shouldShowError(loginForm.controls.email, 'required')) {
-              <p id="login-email-error" class="font-mono text-[11px] text-error tracking-wide">
-                O campo precisa ser preenchido.
-              </p>
-            }
+            <div id="login-email-error" class="flex flex-col gap-1">
+              @if (shouldShowError(loginForm.controls.email, 'required')) {
+                <p data-testid="email-error-required" class="font-mono text-[11px] text-error tracking-wide">
+                  O campo precisa ser preenchido.
+                </p>
+              }
+              @if (shouldShowError(loginForm.controls.email, 'email')) {
+                <p data-testid="email-error-format" class="font-mono text-[11px] text-error tracking-wide">
+                  Formato de email inválido.
+                </p>
+              }
+            </div>
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -98,7 +106,11 @@ export class LoginComponent {
   private readonly route = inject(ActivatedRoute);
 
   readonly isSubmitting = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(
+    this.route.snapshot.queryParamMap.has('sessionCheckFailed')
+      ? 'Não foi possível confirmar sua sessão. Tente novamente.'
+      : null,
+  );
 
   protected readonly shouldShowError = shouldShowError;
 
@@ -116,6 +128,16 @@ export class LoginComponent {
   private isSafeReturnUrl(url: string | null): boolean {
     if (!url) return false;
     return url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\');
+  }
+
+  private resolveErrorMessage(err: unknown): string {
+    if (err instanceof TimeoutError) {
+      return 'O servidor demorou para responder. Tente novamente.';
+    }
+    if (err instanceof HttpErrorResponse && err.status === 401) {
+      return 'Credenciais inválidas. Verifique seu email e senha.';
+    }
+    return 'Falha ao autenticar. Verifique suas credenciais.';
   }
 
   onSubmit(): void {
@@ -136,11 +158,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        this.errorMessage.set(
-          err instanceof HttpErrorResponse && err.status === 401
-            ? 'Credenciais inválidas. Verifique seu email e senha.'
-            : 'Falha ao autenticar. Verifique suas credenciais.',
-        );
+        this.errorMessage.set(this.resolveErrorMessage(err));
       },
     });
   }

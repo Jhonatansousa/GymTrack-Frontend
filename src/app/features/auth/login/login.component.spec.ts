@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { Subject, of, throwError } from 'rxjs';
+import { Subject, TimeoutError, of, throwError } from 'rxjs';
 import { MockInstance, vi } from 'vitest';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -233,6 +233,18 @@ describe('LoginComponent', () => {
       expect(queryByTestId('login-error')?.textContent?.trim()).toBe('Credenciais inválidas. Verifique seu email e senha.');
     });
 
+    it('should display a specific message when login times out', () => {
+      mockLoginError(new TimeoutError());
+      fillForm();
+
+      component.onSubmit();
+      fixture.detectChanges();
+
+      expect(queryByTestId('login-error')?.textContent?.trim()).toBe(
+        'O servidor demorou para responder. Tente novamente.',
+      );
+    });
+
     it('should clear error message when a new submit is attempted', () => {
       mockLoginError(new Error('401'));
       fillForm();
@@ -304,6 +316,39 @@ describe('LoginComponent', () => {
     it('should fall back to /dashboard when returnUrl starts with /\\', () => {
       loginWithReturnUrl('/\\evil.com');
       expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    });
+  });
+
+  describe('session check failure feedback', () => {
+    it('should display a session-check-failed message when sessionCheckFailed query param is present', () => {
+      activatedRouteMock.snapshot.queryParamMap = convertToParamMap({ sessionCheckFailed: 'true' });
+      const localFixture = TestBed.createComponent(LoginComponent);
+      localFixture.detectChanges();
+      const localCompiled = localFixture.nativeElement as HTMLElement;
+
+      expect(localCompiled.querySelector("[data-testid='login-error']")?.textContent?.trim()).toBe(
+        'Não foi possível confirmar sua sessão. Tente novamente.',
+      );
+    });
+  });
+
+  describe('email format validation', () => {
+    it('should display an email format error when email format is invalid and touched', () => {
+      setControlValue('email', 'jhonatan@');
+
+      expect(queryByTestId('email-error-format')?.textContent?.trim()).toBe('Formato de email inválido.');
+    });
+
+    it('should NOT display an email format error when email is empty and touched', () => {
+      setControlValue('email', '');
+
+      expect(queryByTestId('email-error-format')).toBeNull();
+    });
+
+    it('should NOT display an email format error when email is valid and touched', () => {
+      setControlValue('email', 'user@mail.com');
+
+      expect(queryByTestId('email-error-format')).toBeNull();
     });
   });
 
