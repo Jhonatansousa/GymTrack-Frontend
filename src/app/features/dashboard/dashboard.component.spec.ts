@@ -8,16 +8,23 @@ import { DashboardComponent } from './dashboard.component';
 
 describe('DashboardComponent', () => {
   let logoutSpy: ReturnType<typeof vi.fn>;
+  let checkSessionSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
   let fixture: ComponentFixture<DashboardComponent>;
   let compiled: HTMLElement;
 
   beforeEach(() => {
     logoutSpy = vi.fn(() => of({ results: {} }));
+    checkSessionSpy = vi.fn(() =>
+      of({ results: { id: 'u1', email: 'jhonatan@example.com', name: 'Jhonatan' } }),
+    );
 
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
-      providers: [provideRouter([]), { provide: AuthService, useValue: { logout: logoutSpy } }],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { logout: logoutSpy, checkSession: checkSessionSpy } },
+      ],
     });
 
     const router = TestBed.inject(Router);
@@ -41,9 +48,18 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
   }
 
-  it('should render a dashboard welcome heading', () => {
-    expect(compiled.textContent).toContain('Dashboard');
-    expect(queryByTestId('dashboard-welcome')).toBeTruthy();
+  describe('greeting header', () => {
+    it('should render the welcome eyebrow', () => {
+      expect(queryByTestId('dashboard-eyebrow')?.textContent).toContain('Bem-vindo de volta');
+    });
+
+    it('should greet the authenticated user by name', () => {
+      expect(queryByTestId('dashboard-greeting')?.textContent).toContain('Olá, Jhonatan');
+    });
+
+    it('should render the user initial in the avatar button', () => {
+      expect(menuButton().textContent?.trim()).toBe('J');
+    });
   });
 
   describe('user menu button', () => {
