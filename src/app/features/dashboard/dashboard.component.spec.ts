@@ -14,6 +14,7 @@ describe('DashboardComponent', () => {
   let checkSessionSpy: ReturnType<typeof vi.fn>;
   let getAllSpy: ReturnType<typeof vi.fn>;
   let createSpy: ReturnType<typeof vi.fn>;
+  let updateSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
   let fixture: ComponentFixture<DashboardComponent>;
   let compiled: HTMLElement;
@@ -25,13 +26,17 @@ describe('DashboardComponent', () => {
     );
     getAllSpy = vi.fn(() => of<Division[]>([]));
     createSpy = vi.fn(() => of<Division>({ id: 9, name: 'Pernas' }));
+    updateSpy = vi.fn(() => of<Division>({ id: 1, name: 'Peito e Tríceps' }));
 
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: { logout: logoutSpy, checkSession: checkSessionSpy } },
-        { provide: DivisionsService, useValue: { getAll: getAllSpy, create: createSpy } },
+        {
+          provide: DivisionsService,
+          useValue: { getAll: getAllSpy, create: createSpy, update: updateSpy },
+        },
       ],
     });
 
@@ -55,6 +60,20 @@ describe('DashboardComponent', () => {
     fixture = TestBed.createComponent(DashboardComponent);
     compiled = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
+  }
+
+  function clickByTestId(testId: string): void {
+    (queryByTestId(testId) as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
+  function fillAndSubmitForm(name: string): void {
+    const input = queryByTestId('division-form-name') as HTMLInputElement;
+    input.value = name;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    clickByTestId('division-form-submit');
   }
 
   function menuButton(): HTMLButtonElement {
@@ -130,27 +149,12 @@ describe('DashboardComponent', () => {
   describe('create division', () => {
     const created: Division = { id: 9, name: 'Pernas' };
 
-    function openForm(triggerTestId: string): void {
-      (queryByTestId(triggerTestId) as HTMLButtonElement).click();
-      fixture.detectChanges();
-    }
-
-    function fillAndSubmitForm(name: string): void {
-      const input = queryByTestId('division-form-name') as HTMLInputElement;
-      input.value = name;
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-
-      (queryByTestId('division-form-submit') as HTMLButtonElement).click();
-      fixture.detectChanges();
-    }
-
     it('should open the create form from the "Nova Divisão" button', () => {
       getAllSpy.mockReturnValue(of([created]));
       recreate();
 
       expect(queryByTestId('division-form')).toBeFalsy();
-      openForm('new-division-button');
+      clickByTestId('new-division-button');
 
       expect(queryByTestId('division-form')).toBeTruthy();
     });
@@ -159,14 +163,14 @@ describe('DashboardComponent', () => {
       getAllSpy.mockReturnValue(of<Division[]>([]));
       recreate();
 
-      openForm('create-first-division-button');
+      clickByTestId('create-first-division-button');
 
       expect(queryByTestId('division-form')).toBeTruthy();
     });
 
     it('should create the division, reload the list and close the form on save', () => {
       recreate();
-      openForm('create-first-division-button');
+      clickByTestId('create-first-division-button');
 
       getAllSpy.mockClear();
       getAllSpy.mockReturnValueOnce(of([created]));
@@ -184,10 +188,65 @@ describe('DashboardComponent', () => {
       createSpy.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 409 })));
       recreate();
 
-      openForm('create-first-division-button');
+      clickByTestId('create-first-division-button');
       fillAndSubmitForm('Pernas');
 
       expect(queryByTestId('division-form')).toBeTruthy();
+      expect(queryByTestId('division-form-error')?.textContent).toContain(
+        'Já existe uma divisão com esse nome.',
+      );
+    });
+  });
+
+  describe('edit division', () => {
+    const division: Division = { id: 1, name: 'Peito / Tríceps' };
+
+    beforeEach(() => {
+      getAllSpy.mockReturnValue(of([division]));
+      recreate();
+    });
+
+    it('should open the form in edit mode prefilled when the card edit is clicked', () => {
+      clickByTestId('division-card-edit');
+
+      expect(queryByTestId('division-form')).toBeTruthy();
+      expect(queryByTestId('division-form-title')?.textContent).toContain('Editar Divisão');
+      expect((queryByTestId('division-form-name') as HTMLInputElement).value).toBe(
+        'Peito / Tríceps',
+      );
+    });
+
+    it('should update the division, reload and close the form on save', () => {
+      clickByTestId('division-card-edit');
+
+      getAllSpy.mockClear();
+      getAllSpy.mockReturnValueOnce(of([{ id: 1, name: 'Peito e Tríceps' }]));
+
+      fillAndSubmitForm('Peito e Tríceps');
+
+      expect(updateSpy).toHaveBeenCalledWith(1, 'Peito e Tríceps');
+      expect(getAllSpy).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('division-form')).toBeFalsy();
+    });
+
+    it('should keep the form open and show a not-found message on 404', () => {
+      updateSpy.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 404 })));
+
+      clickByTestId('division-card-edit');
+      fillAndSubmitForm('Qualquer nome');
+
+      expect(queryByTestId('division-form')).toBeTruthy();
+      expect(queryByTestId('division-form-error')?.textContent).toContain(
+        'Divisão não encontrada.',
+      );
+    });
+
+    it('should show a conflict message on 409', () => {
+      updateSpy.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 409 })));
+
+      clickByTestId('division-card-edit');
+      fillAndSubmitForm('Costas');
+
       expect(queryByTestId('division-form-error')?.textContent).toContain(
         'Já existe uma divisão com esse nome.',
       );
