@@ -1,74 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  HostListener,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { Division } from '../../core/models/division.model';
+import { DashboardHeaderComponent } from './components/dashboard-header/dashboard-header.component';
 import { DivisionCardComponent } from './components/division-card/division-card.component';
 import { DivisionFormComponent } from './components/division-form/division-form.component';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DivisionCardComponent, DivisionFormComponent],
+  imports: [DashboardHeaderComponent, DivisionCardComponent, DivisionFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
-      <header class="flex items-start justify-between gap-5">
-        <div>
-          <p
-            data-testid="dashboard-eyebrow"
-            class="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-accent"
-          >
-            Bem-vindo de volta
-          </p>
-          <h1
-            data-testid="dashboard-greeting"
-            class="font-serif text-3xl font-semibold tracking-tight text-text"
-          >
-            Olá, {{ userName() }}
-          </h1>
-        </div>
-
-        <div class="relative">
-          <button
-            type="button"
-            data-testid="user-menu-button"
-            aria-haspopup="menu"
-            [attr.aria-expanded]="isMenuOpen()"
-            (click)="toggleMenu()"
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface font-mono text-sm font-bold text-text-muted transition-colors duration-150 hover:bg-surface-raised"
-          >
-            {{ userInitial() }}
-          </button>
-
-          @if (isMenuOpen()) {
-            <div
-              data-testid="user-menu-dropdown"
-              role="menu"
-              class="absolute right-0 top-full z-10 mt-2 min-w-40 rounded border border-border bg-surface py-1 shadow-lg"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                data-testid="user-menu-logout"
-                (click)="onLogout()"
-                class="w-full px-4 py-2.5 text-left text-sm text-text transition-colors duration-150 hover:bg-surface-raised"
-              >
-                Sair
-              </button>
-            </div>
-          }
-        </div>
-      </header>
+      <app-dashboard-header [userName]="userName()" (logout)="onLogout()" />
 
       @if (divisions().length > 0) {
         <section aria-labelledby="divisions-heading">
@@ -155,11 +102,8 @@ export class DashboardComponent {
   private readonly authService = inject(AuthService);
   private readonly divisionsService = inject(DivisionsService);
   private readonly router = inject(Router);
-  private readonly elementRef = inject(ElementRef<HTMLElement>);
 
-  readonly isMenuOpen = signal(false);
   readonly userName = signal('');
-  readonly userInitial = computed(() => this.userName().charAt(0).toUpperCase());
   readonly divisions = signal<Division[]>([]);
   readonly isFormOpen = signal(false);
   readonly formError = signal('');
@@ -220,18 +164,6 @@ export class DashboardComponent {
     this.divisionsService.getAll().subscribe({
       next: (divisions) => this.divisions.set(divisions),
     });
-  }
-
-  toggleMenu(): void {
-    this.isMenuOpen.update((open) => !open);
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.isMenuOpen()) return;
-    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-      this.isMenuOpen.set(false);
-    }
   }
 
   onLogout(): void {

@@ -85,18 +85,8 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
   }
 
-  describe('greeting header', () => {
-    it('should render the welcome eyebrow', () => {
-      expect(queryByTestId('dashboard-eyebrow')?.textContent).toContain('Bem-vindo de volta');
-    });
-
-    it('should greet the authenticated user by name', () => {
-      expect(queryByTestId('dashboard-greeting')?.textContent).toContain('Olá, Jhonatan');
-    });
-
-    it('should render the user initial in the avatar button', () => {
-      expect(menuButton().textContent?.trim()).toBe('J');
-    });
+  it('should pass the authenticated user name to the header greeting', () => {
+    expect(queryByTestId('dashboard-greeting')?.textContent).toContain('Olá, Jhonatan');
   });
 
   describe('divisions section', () => {
@@ -250,33 +240,6 @@ describe('DashboardComponent', () => {
       expect(queryByTestId('division-form-error')?.textContent).toContain(
         'Já existe uma divisão com esse nome.',
       );
-    });
-  });
-
-  describe('user menu button', () => {
-    it('should render the user menu button collapsed by default', () => {
-      expect(menuButton()).toBeTruthy();
-      expect(menuButton().getAttribute('aria-haspopup')).toBe('menu');
-      expect(menuButton().getAttribute('aria-expanded')).toBe('false');
-      expect(queryByTestId('user-menu-dropdown')).toBeFalsy();
-    });
-
-    it('should open the dropdown when the button is clicked', () => {
-      openMenu();
-
-      expect(menuButton().getAttribute('aria-expanded')).toBe('true');
-      expect(queryByTestId('user-menu-dropdown')).toBeTruthy();
-      expect(queryByTestId('user-menu-logout')).toBeTruthy();
-    });
-
-    it('should close the dropdown when clicking outside', () => {
-      openMenu();
-
-      document.body.click();
-      fixture.detectChanges();
-
-      expect(menuButton().getAttribute('aria-expanded')).toBe('false');
-      expect(queryByTestId('user-menu-dropdown')).toBeFalsy();
     });
   });
 
