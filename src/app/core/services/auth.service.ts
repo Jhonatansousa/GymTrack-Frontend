@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, timeout } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { AuthResponse, CurrentUserResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
 
 // Render's free-tier instances cold-start after inactivity, taking 30-50s to respond
 // to the first request. 60s gives that enough margin while still failing hung requests.
@@ -26,8 +26,8 @@ export class AuthService {
       .pipe(timeout(AUTH_REQUEST_TIMEOUT_MS));
   }
 
-  checkSession(): Observable<AuthResponse> {
-    return this.http.get<AuthResponse>(`${this.baseUrl}/me`);
+  checkSession(): Observable<CurrentUserResponse> {
+    return this.http.get<CurrentUserResponse>(`${this.baseUrl}/me`);
   }
 
   logout(): Observable<AuthResponse> {
