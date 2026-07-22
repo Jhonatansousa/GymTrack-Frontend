@@ -41,4 +41,21 @@ describe('DivisionsService', () => {
       expect(emitted).toEqual(divisions);
     });
   });
+
+  describe('create', () => {
+    it('should POST /divisions with the name and emit the created division', () => {
+      const created: Division = { id: 3, name: 'Pernas' };
+      let emitted: Division | undefined;
+
+      service.create('Pernas').subscribe((result) => (emitted = result));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/divisions`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ name: 'Pernas' });
+
+      req.flush({ results: created });
+
+      expect(emitted).toEqual(created);
+    });
+  });
 });
