@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,10 +14,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { Division } from '../../core/models/division.model';
 import { DivisionCardComponent } from './components/division-card/division-card.component';
+import { DivisionFormComponent } from './components/division-form/division-form.component';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DivisionCardComponent],
+  imports: [DivisionCardComponent, DivisionFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -70,13 +72,26 @@ import { DivisionCardComponent } from './components/division-card/division-card.
 
       @if (divisions().length > 0) {
         <section aria-labelledby="divisions-heading">
-          <p
-            id="divisions-heading"
-            data-testid="divisions-heading"
-            class="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted"
-          >
-            Divisões de Treino
-          </p>
+          <div class="mb-5 flex items-center justify-between gap-4">
+            <p
+              id="divisions-heading"
+              data-testid="divisions-heading"
+              class="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted"
+            >
+              Divisões de Treino
+            </p>
+            <button
+              type="button"
+              data-testid="new-division-button"
+              (click)="openForm()"
+              class="inline-flex items-center gap-2 rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              Nova Divisão
+            </button>
+          </div>
 
           <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
             @for (division of divisions(); track division.id) {
@@ -109,7 +124,26 @@ import { DivisionCardComponent } from './components/division-card/division-card.
             Crie sua primeira divisão de treino para começar a organizar seus exercícios e
             acompanhar sua evolução.
           </p>
+          <button
+            type="button"
+            data-testid="create-first-division-button"
+            (click)="openForm()"
+            class="mt-7 inline-flex items-center gap-2 rounded bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            Criar primeira divisão
+          </button>
         </section>
+      }
+
+      @if (isFormOpen()) {
+        <app-division-form
+          [errorMessage]="formError()"
+          (save)="onCreateDivision($event)"
+          (cancel)="closeForm()"
+        />
       }
     </section>
   `,
@@ -124,11 +158,43 @@ export class DashboardComponent {
   readonly userName = signal('');
   readonly userInitial = computed(() => this.userName().charAt(0).toUpperCase());
   readonly divisions = signal<Division[]>([]);
+  readonly isFormOpen = signal(false);
+  readonly formError = signal('');
 
   constructor() {
     this.authService.checkSession().subscribe({
       next: (response) => this.userName.set(response.results.name),
     });
+    this.loadDivisions();
+  }
+
+  openForm(): void {
+    this.formError.set('');
+    this.isFormOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.isFormOpen.set(false);
+  }
+
+  onCreateDivision(name: string): void {
+    this.formError.set('');
+    this.divisionsService.create(name).subscribe({
+      next: () => {
+        this.closeForm();
+        this.loadDivisions();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.formError.set(
+          error.status === 409
+            ? 'Já existe uma divisão com esse nome.'
+            : 'Não foi possível criar a divisão. Tente novamente.',
+        );
+      },
+    });
+  }
+
+  private loadDivisions(): void {
     this.divisionsService.getAll().subscribe({
       next: (divisions) => this.divisions.set(divisions),
     });
