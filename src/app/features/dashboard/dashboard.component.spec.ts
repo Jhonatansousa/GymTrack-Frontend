@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { MockInstance, vi } from 'vitest';
@@ -12,6 +13,7 @@ describe('DashboardComponent', () => {
   let logoutSpy: ReturnType<typeof vi.fn>;
   let checkSessionSpy: ReturnType<typeof vi.fn>;
   let getAllSpy: ReturnType<typeof vi.fn>;
+  let createSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
   let fixture: ComponentFixture<DashboardComponent>;
   let compiled: HTMLElement;
@@ -22,13 +24,14 @@ describe('DashboardComponent', () => {
       of({ results: { id: 'u1', email: 'jhonatan@example.com', name: 'Jhonatan' } }),
     );
     getAllSpy = vi.fn(() => of<Division[]>([]));
+    createSpy = vi.fn(() => of<Division>({ id: 9, name: 'Pernas' }));
 
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: { logout: logoutSpy, checkSession: checkSessionSpy } },
-        { provide: DivisionsService, useValue: { getAll: getAllSpy } },
+        { provide: DivisionsService, useValue: { getAll: getAllSpy, create: createSpy } },
       ],
     });
 
@@ -121,6 +124,72 @@ describe('DashboardComponent', () => {
       it('should not render any division card', () => {
         expect(queryAllByTestId('division-card')).toHaveLength(0);
       });
+    });
+  });
+
+  describe('create division', () => {
+    const created: Division = { id: 9, name: 'Pernas' };
+
+    function openForm(triggerTestId: string): void {
+      (queryByTestId(triggerTestId) as HTMLButtonElement).click();
+      fixture.detectChanges();
+    }
+
+    function fillAndSubmitForm(name: string): void {
+      const input = queryByTestId('division-form-name') as HTMLInputElement;
+      input.value = name;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      (queryByTestId('division-form-submit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+    }
+
+    it('should open the create form from the "Nova Divisão" button', () => {
+      getAllSpy.mockReturnValue(of([created]));
+      recreate();
+
+      expect(queryByTestId('division-form')).toBeFalsy();
+      openForm('new-division-button');
+
+      expect(queryByTestId('division-form')).toBeTruthy();
+    });
+
+    it('should open the create form from the empty-state button', () => {
+      getAllSpy.mockReturnValue(of<Division[]>([]));
+      recreate();
+
+      openForm('create-first-division-button');
+
+      expect(queryByTestId('division-form')).toBeTruthy();
+    });
+
+    it('should create the division, reload the list and close the form on save', () => {
+      getAllSpy.mockReturnValueOnce(of<Division[]>([]));
+      getAllSpy.mockReturnValueOnce(of([created]));
+      recreate();
+
+      openForm('create-first-division-button');
+      fillAndSubmitForm('Pernas');
+
+      expect(createSpy).toHaveBeenCalledWith('Pernas');
+      expect(getAllSpy).toHaveBeenCalledTimes(2);
+      expect(queryByTestId('division-form')).toBeFalsy();
+      expect(queryAllByTestId('division-card')).toHaveLength(1);
+    });
+
+    it('should keep the form open and show a conflict message on 409', () => {
+      getAllSpy.mockReturnValue(of<Division[]>([]));
+      createSpy.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 409 })));
+      recreate();
+
+      openForm('create-first-division-button');
+      fillAndSubmitForm('Pernas');
+
+      expect(queryByTestId('division-form')).toBeTruthy();
+      expect(queryByTestId('division-form-error')?.textContent).toContain(
+        'Já existe uma divisão com esse nome.',
+      );
     });
   });
 
