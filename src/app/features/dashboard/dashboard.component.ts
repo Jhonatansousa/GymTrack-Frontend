@@ -5,13 +5,19 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { Division } from '../../core/models/division.model';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { DashboardHeaderComponent } from './components/dashboard-header/dashboard-header.component';
 import { DivisionCardComponent } from './components/division-card/division-card.component';
 import { DivisionFormComponent } from './components/division-form/division-form.component';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DashboardHeaderComponent, DivisionCardComponent, DivisionFormComponent],
+  imports: [
+    ConfirmDialogComponent,
+    DashboardHeaderComponent,
+    DivisionCardComponent,
+    DivisionFormComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -42,7 +48,11 @@ import { DivisionFormComponent } from './components/division-form/division-form.
 
           <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
             @for (division of divisions(); track division.id) {
-              <app-division-card [division]="division" (edit)="openEditForm(division)" />
+              <app-division-card
+                [division]="division"
+                (edit)="openEditForm(division)"
+                (remove)="askDeleteDivision(division)"
+              />
             }
           </div>
         </section>
@@ -95,6 +105,20 @@ import { DivisionFormComponent } from './components/division-form/division-form.
           (cancel)="closeForm()"
         />
       }
+
+      @if (divisionToDelete(); as division) {
+        <app-confirm-dialog
+          title="Excluir divisão"
+          [message]="
+            'Isso vai apagar a divisão «' +
+            division.name +
+            '» e todos os seus exercícios e séries. Esta ação não pode ser desfeita.'
+          "
+          confirmLabel="Excluir"
+          (confirm)="confirmDelete()"
+          (cancel)="cancelDelete()"
+        />
+      }
     </section>
   `,
 })
@@ -108,6 +132,7 @@ export class DashboardComponent {
   readonly isFormOpen = signal(false);
   readonly formError = signal('');
   readonly editingDivision = signal<Division | null>(null);
+  readonly divisionToDelete = signal<Division | null>(null);
 
   constructor() {
     this.authService.checkSession().subscribe({
@@ -158,6 +183,26 @@ export class DashboardComponent {
       default:
         return 'Não foi possível salvar a divisão. Tente novamente.';
     }
+  }
+
+  askDeleteDivision(division: Division): void {
+    this.divisionToDelete.set(division);
+  }
+
+  cancelDelete(): void {
+    this.divisionToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const division = this.divisionToDelete();
+    if (!division) return;
+
+    this.divisionsService.remove(division.id).subscribe({
+      next: () => {
+        this.divisionToDelete.set(null);
+        this.loadDivisions();
+      },
+    });
   }
 
   private loadDivisions(): void {
