@@ -75,4 +75,19 @@ describe('DivisionsService', () => {
       expect(emitted).toEqual(updated);
     });
   });
+
+  describe('remove', () => {
+    it('should DELETE /divisions/:id', () => {
+      let completed = false;
+
+      service.remove(7).subscribe(() => (completed = true));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/divisions/7`);
+      expect(req.request.method).toBe('DELETE');
+
+      req.flush(null);
+
+      expect(completed).toBe(true);
+    });
+  });
 });
