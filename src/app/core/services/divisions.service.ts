@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Division, DivisionsResponse } from '../models/division.model';
+import { Division, DivisionResponse, DivisionsResponse } from '../models/division.model';
 
 @Injectable({ providedIn: 'root' })
 export class DivisionsService {
@@ -12,5 +12,11 @@ export class DivisionsService {
 
   getAll(): Observable<Division[]> {
     return this.http.get<DivisionsResponse>(this.baseUrl).pipe(map((response) => response.results));
+  }
+
+  create(name: string): Observable<Division> {
+    return this.http
+      .post<DivisionResponse>(this.baseUrl, { name })
+      .pipe(map((response) => response.results));
   }
 }
