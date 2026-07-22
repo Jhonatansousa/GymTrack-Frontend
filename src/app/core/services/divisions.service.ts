@@ -19,4 +19,10 @@ export class DivisionsService {
       .post<DivisionResponse>(this.baseUrl, { name })
       .pipe(map((response) => response.results));
   }
+
+  update(id: number, newName: string): Observable<Division> {
+    return this.http
+      .patch<DivisionResponse>(`${this.baseUrl}/${id}`, { newName })
+      .pipe(map((response) => response.results));
+  }
 }
