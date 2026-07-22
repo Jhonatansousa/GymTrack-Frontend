@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { shouldShowError } from '../../../../shared/utils/form-errors';
@@ -42,6 +42,12 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
             </p>
           }
 
+          @if (errorMessage()) {
+            <p data-testid="division-form-error" class="mt-3 text-sm text-error">
+              {{ errorMessage() }}
+            </p>
+          }
+
           <div class="mt-6 flex justify-end gap-3">
             <button
               type="button"
@@ -65,6 +71,8 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
   `,
 })
 export class DivisionFormComponent {
+  readonly errorMessage = input('');
+
   readonly save = output<string>();
   readonly cancel = output<void>();
 

@@ -165,15 +165,16 @@ describe('DashboardComponent', () => {
     });
 
     it('should create the division, reload the list and close the form on save', () => {
-      getAllSpy.mockReturnValueOnce(of<Division[]>([]));
-      getAllSpy.mockReturnValueOnce(of([created]));
       recreate();
-
       openForm('create-first-division-button');
+
+      getAllSpy.mockClear();
+      getAllSpy.mockReturnValueOnce(of([created]));
+
       fillAndSubmitForm('Pernas');
 
       expect(createSpy).toHaveBeenCalledWith('Pernas');
-      expect(getAllSpy).toHaveBeenCalledTimes(2);
+      expect(getAllSpy).toHaveBeenCalledTimes(1);
       expect(queryByTestId('division-form')).toBeFalsy();
       expect(queryAllByTestId('division-card')).toHaveLength(1);
     });
