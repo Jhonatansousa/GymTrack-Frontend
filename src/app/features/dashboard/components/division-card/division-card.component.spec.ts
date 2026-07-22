@@ -41,4 +41,13 @@ describe('DivisionCardComponent', () => {
 
     expect(editSpy).toHaveBeenCalled();
   });
+
+  it('should emit remove when the delete button is clicked', () => {
+    const removeSpy = vi.fn();
+    component.remove.subscribe(removeSpy);
+
+    (queryByTestId('division-card-delete') as HTMLButtonElement).click();
+
+    expect(removeSpy).toHaveBeenCalled();
+  });
 });
