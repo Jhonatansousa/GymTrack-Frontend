@@ -6,3 +6,7 @@ export interface Division {
 export interface DivisionsResponse {
   results: Division[];
 }
+
+export interface DivisionResponse {
+  results: Division;
+}
