@@ -95,7 +95,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
 
           <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
             @for (division of divisions(); track division.id) {
-              <app-division-card [division]="division" />
+              <app-division-card [division]="division" (edit)="openEditForm(division)" />
             }
           </div>
         </section>
@@ -140,8 +140,11 @@ import { DivisionFormComponent } from './components/division-form/division-form.
 
       @if (isFormOpen()) {
         <app-division-form
+          [heading]="editingDivision() ? 'Editar Divisão' : 'Nova Divisão'"
+          [submitLabel]="editingDivision() ? 'Salvar' : 'Criar'"
+          [initialName]="editingDivision()?.name ?? ''"
           [errorMessage]="formError()"
-          (save)="onCreateDivision($event)"
+          (save)="onSubmitForm($event)"
           (cancel)="closeForm()"
         />
       }
@@ -160,6 +163,7 @@ export class DashboardComponent {
   readonly divisions = signal<Division[]>([]);
   readonly isFormOpen = signal(false);
   readonly formError = signal('');
+  readonly editingDivision = signal<Division | null>(null);
 
   constructor() {
     this.authService.checkSession().subscribe({
@@ -169,29 +173,47 @@ export class DashboardComponent {
   }
 
   openForm(): void {
+    this.editingDivision.set(null);
+    this.formError.set('');
+    this.isFormOpen.set(true);
+  }
+
+  openEditForm(division: Division): void {
+    this.editingDivision.set(division);
     this.formError.set('');
     this.isFormOpen.set(true);
   }
 
   closeForm(): void {
     this.isFormOpen.set(false);
+    this.editingDivision.set(null);
   }
 
-  onCreateDivision(name: string): void {
+  onSubmitForm(name: string): void {
+    const editing = this.editingDivision();
+    const request = editing
+      ? this.divisionsService.update(editing.id, name)
+      : this.divisionsService.create(name);
+
     this.formError.set('');
-    this.divisionsService.create(name).subscribe({
+    request.subscribe({
       next: () => {
         this.closeForm();
         this.loadDivisions();
       },
-      error: (error: HttpErrorResponse) => {
-        this.formError.set(
-          error.status === 409
-            ? 'Já existe uma divisão com esse nome.'
-            : 'Não foi possível criar a divisão. Tente novamente.',
-        );
-      },
+      error: (error: HttpErrorResponse) => this.formError.set(this.mapFormError(error)),
     });
+  }
+
+  private mapFormError(error: HttpErrorResponse): string {
+    switch (error.status) {
+      case 409:
+        return 'Já existe uma divisão com esse nome.';
+      case 404:
+        return 'Divisão não encontrada.';
+      default:
+        return 'Não foi possível salvar a divisão. Tente novamente.';
+    }
   }
 
   private loadDivisions(): void {
