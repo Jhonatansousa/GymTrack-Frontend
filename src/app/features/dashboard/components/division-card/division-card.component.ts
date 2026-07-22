@@ -27,6 +27,23 @@ import { Division } from '../../../../core/models/division.model';
             />
           </svg>
         </button>
+        <button
+          type="button"
+          data-testid="division-card-delete"
+          aria-label="Excluir divisão"
+          (click)="remove.emit()"
+          class="flex h-8 w-8 items-center justify-center rounded text-text-faint transition-colors duration-150 hover:bg-error/15 hover:text-error"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path
+              d="M3 4H12M5.5 4V2.5H9.5V4M6 6.5V10.5M9 6.5V10.5M4 4L4.7 12H10.3L11 4"
+              stroke="currentColor"
+              stroke-width="1.3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
       <h3 class="pr-16 font-sans text-lg font-semibold text-text">{{ division().name }}</h3>
@@ -57,4 +74,5 @@ export class DivisionCardComponent {
   readonly division = input.required<Division>();
 
   readonly edit = output<void>();
+  readonly remove = output<void>();
 }
