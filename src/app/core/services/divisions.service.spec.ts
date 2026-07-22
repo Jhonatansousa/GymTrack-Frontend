@@ -58,4 +58,21 @@ describe('DivisionsService', () => {
       expect(emitted).toEqual(created);
     });
   });
+
+  describe('update', () => {
+    it('should PATCH /divisions/:id with the new name and emit the updated division', () => {
+      const updated: Division = { id: 5, name: 'Pernas & Glúteos' };
+      let emitted: Division | undefined;
+
+      service.update(5, 'Pernas & Glúteos').subscribe((result) => (emitted = result));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/divisions/5`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ newName: 'Pernas & Glúteos' });
+
+      req.flush({ results: updated });
+
+      expect(emitted).toEqual(updated);
+    });
+  });
 });
