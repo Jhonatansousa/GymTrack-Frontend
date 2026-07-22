@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -8,11 +16,21 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4">
-      <header class="flex items-start justify-between gap-4">
+    <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
+      <header class="flex items-start justify-between gap-5">
         <div>
-          <h1 class="text-xl font-semibold">Dashboard</h1>
-          <p data-testid="dashboard-welcome" class="text-sm">Bem-vindo!</p>
+          <p
+            data-testid="dashboard-eyebrow"
+            class="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-accent"
+          >
+            Bem-vindo de volta
+          </p>
+          <h1
+            data-testid="dashboard-greeting"
+            class="font-serif text-3xl font-semibold tracking-tight text-text"
+          >
+            Olá, {{ userName() }}
+          </h1>
         </div>
 
         <div class="relative">
@@ -22,17 +40,9 @@ import { AuthService } from '../../core/services/auth.service';
             aria-haspopup="menu"
             [attr.aria-expanded]="isMenuOpen()"
             (click)="toggleMenu()"
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-muted transition-colors duration-150 hover:bg-surface-raised"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface font-mono text-sm font-bold text-text-muted transition-colors duration-150 hover:bg-surface-raised"
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path
-                d="M9 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3 15c0-2.8 2.7-5 6-5s6 2.2 6 5"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+            {{ userInitial() }}
           </button>
 
           @if (isMenuOpen()) {
@@ -63,6 +73,14 @@ export class DashboardComponent {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   readonly isMenuOpen = signal(false);
+  readonly userName = signal('');
+  readonly userInitial = computed(() => this.userName().charAt(0).toUpperCase());
+
+  constructor() {
+    this.authService.checkSession().subscribe({
+      next: (response) => this.userName.set(response.results.name),
+    });
+  }
 
   toggleMenu(): void {
     this.isMenuOpen.update((open) => !open);
