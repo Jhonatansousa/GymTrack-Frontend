@@ -15,6 +15,7 @@ describe('DashboardComponent', () => {
   let getAllSpy: ReturnType<typeof vi.fn>;
   let createSpy: ReturnType<typeof vi.fn>;
   let updateSpy: ReturnType<typeof vi.fn>;
+  let removeSpy: ReturnType<typeof vi.fn>;
   let navigateSpy: MockInstance<Router['navigate']>;
   let fixture: ComponentFixture<DashboardComponent>;
   let compiled: HTMLElement;
@@ -27,6 +28,7 @@ describe('DashboardComponent', () => {
     getAllSpy = vi.fn(() => of<Division[]>([]));
     createSpy = vi.fn(() => of<Division>({ id: 9, name: 'Pernas' }));
     updateSpy = vi.fn(() => of<Division>({ id: 1, name: 'Peito e Tríceps' }));
+    removeSpy = vi.fn(() => of<void>(undefined));
 
     TestBed.configureTestingModule({
       imports: [DashboardComponent],
@@ -35,7 +37,7 @@ describe('DashboardComponent', () => {
         { provide: AuthService, useValue: { logout: logoutSpy, checkSession: checkSessionSpy } },
         {
           provide: DivisionsService,
-          useValue: { getAll: getAllSpy, create: createSpy, update: updateSpy },
+          useValue: { getAll: getAllSpy, create: createSpy, update: updateSpy, remove: removeSpy },
         },
       ],
     });
@@ -240,6 +242,44 @@ describe('DashboardComponent', () => {
       expect(queryByTestId('division-form-error')?.textContent).toContain(
         'Já existe uma divisão com esse nome.',
       );
+    });
+  });
+
+  describe('delete division', () => {
+    const division: Division = { id: 3, name: 'Pernas' };
+
+    beforeEach(() => {
+      getAllSpy.mockReturnValue(of([division]));
+      recreate();
+    });
+
+    it('should open a confirmation dialog warning about the cascade when delete is clicked', () => {
+      clickByTestId('division-card-delete');
+
+      expect(queryByTestId('confirm-dialog')).toBeTruthy();
+      expect(queryByTestId('confirm-dialog-message')?.textContent).toContain('exercícios');
+    });
+
+    it('should remove the division, reload and close the dialog on confirm', () => {
+      clickByTestId('division-card-delete');
+
+      getAllSpy.mockClear();
+      getAllSpy.mockReturnValueOnce(of<Division[]>([]));
+
+      clickByTestId('confirm-dialog-confirm');
+
+      expect(removeSpy).toHaveBeenCalledWith(3);
+      expect(getAllSpy).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('confirm-dialog')).toBeFalsy();
+      expect(queryAllByTestId('division-card')).toHaveLength(0);
+    });
+
+    it('should close the dialog without deleting on cancel', () => {
+      clickByTestId('division-card-delete');
+      clickByTestId('confirm-dialog-cancel');
+
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(queryByTestId('confirm-dialog')).toBeFalsy();
     });
   });
 
