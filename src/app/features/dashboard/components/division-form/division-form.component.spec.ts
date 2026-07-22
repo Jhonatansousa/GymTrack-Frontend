@@ -73,4 +73,23 @@ describe('DivisionFormComponent', () => {
 
     expect(cancelSpy).toHaveBeenCalled();
   });
+
+  describe('edit mode', () => {
+    it('should render a custom heading and submit label', () => {
+      fixture.componentRef.setInput('heading', 'Editar Divisão');
+      fixture.componentRef.setInput('submitLabel', 'Salvar');
+      fixture.detectChanges();
+
+      expect(queryByTestId('division-form-title')?.textContent).toContain('Editar Divisão');
+      expect(submitButton().textContent).toContain('Salvar');
+    });
+
+    it('should prefill the name from the initialName input', () => {
+      fixture.componentRef.setInput('initialName', 'Pernas');
+      fixture.detectChanges();
+
+      expect(nameInput().value).toBe('Pernas');
+      expect(component.form.controls.name.value).toBe('Pernas');
+    });
+  });
 });
