@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { shouldShowError } from '../../../../shared/utils/form-errors';
@@ -16,8 +16,12 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
         aria-labelledby="division-form-title"
         class="w-full max-w-sm rounded-md border border-border bg-surface p-6"
       >
-        <h2 id="division-form-title" class="mb-5 font-serif text-xl font-semibold text-text">
-          Nova Divisão
+        <h2
+          id="division-form-title"
+          data-testid="division-form-title"
+          class="mb-5 font-serif text-xl font-semibold text-text"
+        >
+          {{ heading() }}
         </h2>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
@@ -62,7 +66,7 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
               data-testid="division-form-submit"
               class="rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim"
             >
-              Criar
+              {{ submitLabel() }}
             </button>
           </div>
         </form>
@@ -71,6 +75,9 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
   `,
 })
 export class DivisionFormComponent {
+  readonly heading = input('Nova Divisão');
+  readonly submitLabel = input('Criar');
+  readonly initialName = input('');
   readonly errorMessage = input('');
 
   readonly save = output<string>();
@@ -84,6 +91,10 @@ export class DivisionFormComponent {
       validators: [Validators.required, Validators.maxLength(50)],
     }),
   });
+
+  constructor() {
+    effect(() => this.form.controls.name.setValue(this.initialName()));
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
