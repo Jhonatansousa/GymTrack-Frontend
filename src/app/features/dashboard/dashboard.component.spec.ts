@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Navigation, Router, provideRouter } from '@angular/router';
 import { MockInstance, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { DivisionsService } from '../../core/services/divisions.service';
@@ -330,6 +330,38 @@ describe('DashboardComponent', () => {
 
       expect(removeSpy).not.toHaveBeenCalled();
       expect(queryByTestId('confirm-dialog')).toBeFalsy();
+    });
+  });
+
+  describe('async request states', () => {
+    it('should disable the form submit while create is in flight', () => {
+      const inFlight = new Subject<Division>();
+      createSpy.mockReturnValueOnce(inFlight.asObservable());
+      recreate();
+
+      clickByTestId('create-first-division-button');
+      fillAndSubmitForm('Pernas');
+
+      expect((queryByTestId('division-form-submit') as HTMLButtonElement).disabled).toBe(true);
+
+      inFlight.next({ id: 9, name: 'Pernas' });
+      inFlight.complete();
+    });
+
+    it('should disable the confirm button while delete is in flight', () => {
+      const division: Division = { id: 3, name: 'Pernas' };
+      const inFlight = new Subject<void>();
+      getAllSpy.mockReturnValue(of([division]));
+      removeSpy.mockReturnValueOnce(inFlight.asObservable());
+      recreate();
+
+      clickByTestId('division-card-delete');
+      clickByTestId('confirm-dialog-confirm');
+
+      expect((queryByTestId('confirm-dialog-confirm') as HTMLButtonElement).disabled).toBe(true);
+
+      inFlight.next();
+      inFlight.complete();
     });
   });
 
