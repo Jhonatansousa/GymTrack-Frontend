@@ -37,6 +37,29 @@
 - **Verify:** grep the compiled `dist/*/browser/styles-*.css` for `.text-error`, `.bg-primary`.
   If the selectors are missing, the tokens weren't picked up.
 
+## Pattern — Modals without `@angular/cdk`
+
+The project has no overlay/dialog library installed. Modals (`DivisionFormComponent`,
+`ConfirmDialogComponent`) are plain standalone components following this shape — reuse it for any
+future modal (exercises, sets) instead of reaching for a dialog library:
+
+- **Markup:** a fixed, full-viewport backdrop (`fixed inset-0 z-20 flex items-center justify-center
+  bg-black/60`) wrapping a `role="dialog"` (or `role="alertdialog"` for destructive confirmations)
+  panel with `aria-modal="true"` and `aria-labelledby`/`aria-describedby` pointing at the title/message.
+- **Open/close state lives in the parent** (a `signal`), not in the modal — the modal is a dumb
+  component rendered via `@if` in the container's template. Toggling the `@if` mounts/unmounts it.
+- **Esc closes it:** `@HostListener('document:keydown.escape')` emits the modal's `cancelled` output.
+  Don't name the output `cancel` — `@angular-eslint/no-output-native` rejects it because it collides
+  with the native DOM `cancel` event.
+- **Initial focus:** a template reference variable (`#nameInput`, `#cancelButton`) read via
+  `viewChild<ElementRef<T>>(...)`, focused in a constructor `effect()` once the signal resolves.
+  Don't default focus to a destructive primary action — `ConfirmDialogComponent` focuses **Cancel**,
+  not **Confirm**, so an accidental Enter keypress can't trigger the destructive action.
+- **In-flight requests:** the container passes an `isSubmitting`/`isConfirming` input down; the modal
+  disables its primary button (`disabled:opacity-40 disabled:cursor-not-allowed`) while `true`. Guard
+  the handler itself too (`if (this.isSubmitting()) return;`), since a disabled button doesn't stop a
+  form's Enter-key submission.
+
 ## Language & i18n — "Code speaks English. Users read Portuguese."
 
 The app targets Brazilian users. **All user-facing strings are in Portuguese; all code is in English.**
