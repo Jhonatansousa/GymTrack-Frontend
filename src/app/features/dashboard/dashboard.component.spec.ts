@@ -91,6 +91,31 @@ describe('DashboardComponent', () => {
     expect(queryByTestId('dashboard-greeting')?.textContent).toContain('Olá, Jhonatan');
   });
 
+  describe('when checkSession fails', () => {
+    beforeEach(() => {
+      checkSessionSpy.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      getAllSpy.mockReturnValue(of<Division[]>([{ id: 1, name: 'Pernas' }]));
+    });
+
+    it('should not leave the error unhandled', () => {
+      vi.useFakeTimers();
+
+      expect(() => {
+        recreate();
+        vi.runAllTimers();
+      }).not.toThrow();
+
+      vi.useRealTimers();
+    });
+
+    it('should still render the greeting header and load the divisions', () => {
+      recreate();
+
+      expect(queryByTestId('dashboard-greeting')).toBeTruthy();
+      expect(queryAllByTestId('division-card')).toHaveLength(1);
+    });
+  });
+
   describe('divisions section', () => {
     const divisions: Division[] = [
       { id: 1, name: 'Peito / Tríceps' },
