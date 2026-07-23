@@ -338,12 +338,14 @@ describe('RegisterComponent', () => {
       expect(registerSpy).toHaveBeenCalledWith(expectedPayload);
     });
 
-    it('should navigate to /dashboard on successful registration', () => {
+    it('should navigate to /dashboard flagging first access on successful registration', () => {
       fillForm();
 
       component.onSubmit();
 
-      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard'], {
+        state: { justRegistered: true },
+      });
     });
 
     it('should not call AuthService.register when form is invalid', () => {
