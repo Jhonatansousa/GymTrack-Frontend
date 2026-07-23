@@ -42,7 +42,7 @@ import {
             #cancelButton
             type="button"
             data-testid="confirm-dialog-cancel"
-            (click)="cancel.emit()"
+            (click)="cancelled.emit()"
             class="rounded px-4 py-2.5 text-sm font-medium text-text-muted transition-colors duration-150 hover:bg-surface-raised"
           >
             {{ cancelLabel() }}
@@ -69,7 +69,7 @@ export class ConfirmDialogComponent {
   readonly isConfirming = input(false);
 
   readonly confirm = output<void>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
 
@@ -81,6 +81,6 @@ export class ConfirmDialogComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 }

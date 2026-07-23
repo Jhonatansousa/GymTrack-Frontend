@@ -107,7 +107,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
           [errorMessage]="formError()"
           [isSubmitting]="isSubmitting()"
           (save)="onSubmitForm($event)"
-          (cancel)="closeForm()"
+          (cancelled)="closeForm()"
         />
       }
 
@@ -122,7 +122,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
           confirmLabel="Excluir"
           [isConfirming]="isDeleting()"
           (confirm)="confirmDelete()"
-          (cancel)="cancelDelete()"
+          (cancelled)="cancelDelete()"
         />
       }
     </section>
@@ -150,9 +150,10 @@ export class DashboardComponent {
   constructor() {
     this.authService.checkSession().subscribe({
       next: (response) => this.userName.set(response.results.name),
-      // 401 is already redirected to /auth by errorInterceptor; other failures just
-      // keep the greeting in its empty fallback instead of crashing the dashboard.
-      error: () => {},
+      error: () => {
+        // 401 is already redirected to /auth by errorInterceptor; other failures just
+        // keep the greeting in its empty fallback instead of crashing the dashboard.
+      },
     });
     this.loadDivisions();
   }

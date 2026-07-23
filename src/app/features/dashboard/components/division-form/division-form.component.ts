@@ -66,7 +66,7 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
             <button
               type="button"
               data-testid="division-form-cancel"
-              (click)="cancel.emit()"
+              (click)="cancelled.emit()"
               class="rounded px-4 py-2.5 text-sm font-medium text-text-muted transition-colors duration-150 hover:bg-surface-raised"
             >
               Cancelar
@@ -93,7 +93,7 @@ export class DivisionFormComponent {
   readonly isSubmitting = input(false);
 
   readonly save = output<string>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   readonly shouldShowError = shouldShowError;
 
@@ -122,6 +122,6 @@ export class DivisionFormComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 }
