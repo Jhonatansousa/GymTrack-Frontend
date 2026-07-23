@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  effect,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { shouldShowError } from '../../../../shared/utils/form-errors';
@@ -29,6 +38,7 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
             Nome da divisão
           </label>
           <input
+            #nameInput
             id="division-form-name"
             data-testid="division-form-name"
             type="text"
@@ -85,6 +95,8 @@ export class DivisionFormComponent {
 
   readonly shouldShowError = shouldShowError;
 
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
+
   readonly form = new FormGroup({
     name: new FormControl('', {
       nonNullable: true,
@@ -94,6 +106,7 @@ export class DivisionFormComponent {
 
   constructor() {
     effect(() => this.form.controls.name.setValue(this.initialName()));
+    effect(() => this.nameInput()?.nativeElement.focus());
   }
 
   onSubmit(): void {
@@ -102,5 +115,10 @@ export class DivisionFormComponent {
       return;
     }
     this.save.emit(this.form.controls.name.value.trim());
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cancel.emit();
   }
 }
