@@ -137,6 +137,9 @@ export class DashboardComponent {
   constructor() {
     this.authService.checkSession().subscribe({
       next: (response) => this.userName.set(response.results.name),
+      // 401 is already redirected to /auth by errorInterceptor; other failures just
+      // keep the greeting in its empty fallback instead of crashing the dashboard.
+      error: () => {},
     });
     this.loadDivisions();
   }
