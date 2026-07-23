@@ -20,7 +20,7 @@ import {
           data-testid="dashboard-eyebrow"
           class="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-accent"
         >
-          Bem-vindo de volta
+          {{ eyebrowText() }}
         </p>
         <h1
           data-testid="dashboard-greeting"
@@ -67,10 +67,12 @@ export class DashboardHeaderComponent {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
   readonly userName = input('');
+  readonly isFirstAccess = input(false);
   readonly logout = output<void>();
 
   readonly isMenuOpen = signal(false);
   readonly userInitial = computed(() => this.userName().charAt(0).toUpperCase());
+  readonly eyebrowText = computed(() => (this.isFirstAccess() ? 'Bem-vindo' : 'Bem-vindo de volta'));
 
   toggleMenu(): void {
     this.isMenuOpen.update((open) => !open);
