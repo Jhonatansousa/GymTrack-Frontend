@@ -94,6 +94,32 @@ describe('DivisionFormComponent', () => {
     });
   });
 
+  describe('submitting state', () => {
+    it('should disable the submit button while isSubmitting is true', () => {
+      fixture.componentRef.setInput('isSubmitting', true);
+      fixture.detectChanges();
+
+      expect(submitButton().disabled).toBe(true);
+    });
+
+    it('should not emit save when submitting is already in flight', () => {
+      const saveSpy = vi.fn();
+      component.save.subscribe(saveSpy);
+
+      setControlValue('name', 'Pernas');
+      fixture.componentRef.setInput('isSubmitting', true);
+      fixture.detectChanges();
+
+      submitButton().click();
+
+      expect(saveSpy).not.toHaveBeenCalled();
+    });
+
+    it('should keep the submit button enabled by default', () => {
+      expect(submitButton().disabled).toBe(false);
+    });
+  });
+
   describe('edit mode', () => {
     it('should render a custom heading and submit label', () => {
       fixture.componentRef.setInput('heading', 'Editar Divisão');
