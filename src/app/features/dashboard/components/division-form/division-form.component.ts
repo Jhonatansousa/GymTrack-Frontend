@@ -74,7 +74,8 @@ import { shouldShowError } from '../../../../shared/utils/form-errors';
             <button
               type="submit"
               data-testid="division-form-submit"
-              class="rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim"
+              [disabled]="isSubmitting()"
+              class="rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {{ submitLabel() }}
             </button>
@@ -89,6 +90,7 @@ export class DivisionFormComponent {
   readonly submitLabel = input('Criar');
   readonly initialName = input('');
   readonly errorMessage = input('');
+  readonly isSubmitting = input(false);
 
   readonly save = output<string>();
   readonly cancel = output<void>();
@@ -110,6 +112,7 @@ export class DivisionFormComponent {
   }
 
   onSubmit(): void {
+    if (this.isSubmitting()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
