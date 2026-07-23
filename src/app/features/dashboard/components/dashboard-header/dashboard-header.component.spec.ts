@@ -43,6 +43,14 @@ describe('DashboardHeaderComponent', () => {
     it('should render the user initial in the avatar button', () => {
       expect(menuButton().textContent?.trim()).toBe('J');
     });
+
+    it('should render "Bem-vindo" without "de volta" on first access', () => {
+      fixture.componentRef.setInput('isFirstAccess', true);
+      fixture.detectChanges();
+
+      const eyebrow = queryByTestId('dashboard-eyebrow')?.textContent?.trim();
+      expect(eyebrow).toBe('Bem-vindo');
+    });
   });
 
   describe('user menu', () => {
