@@ -21,9 +21,16 @@
 
 ## B. Workout Divisions (`/divisions`)
 
-- **Operations:** create (`name`), read (list all), update (rename), delete.
+- **`POST /divisions`** — body `{ name }`. 201 on success, 409 if the name already exists.
+- **`GET /divisions`** — lists all divisions for the authenticated user. Response items are
+  `{ id, name }` only — **no `exerciseCount` or `lastTrained`-style fields.** Don't invent them on
+  the frontend; if the design needs that metadata, it has to come from the backend first.
+- **`PATCH /divisions/{id}`** — body `{ newName }`, **not** `{ name }`. This is asymmetric with the
+  POST payload and easy to get wrong (a 400 is the symptom). 200 on success, 404 if not found, 409 if
+  the new name collides with an existing one.
+- **`DELETE /divisions/{id}`** — 200 on success, 404 if not found.
 - **Cascade rule:** deleting a division deletes all exercises and sets inside it. The UI **must** show
-  a confirmation modal before deletion.
+  a confirmation modal warning about the cascade before deletion.
 
 ## C. Exercises (`/exercises`)
 
