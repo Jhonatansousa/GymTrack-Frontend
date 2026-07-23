@@ -227,7 +227,7 @@ export class RegisterComponent {
     this.authService.register({ name, email: email.trim().toLowerCase(), password }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate(['/dashboard'], { state: { justRegistered: true } });
       },
       error: (err) => {
         this.isSubmitting.set(false);
