@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { Navigation, Router, provideRouter } from '@angular/router';
 import { MockInstance, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 
@@ -87,8 +87,33 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
   }
 
+  function mockNavigationState(state: Record<string, unknown> | undefined): void {
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'getCurrentNavigation').mockReturnValue(
+      state ? ({ extras: { state } } as unknown as Navigation) : null,
+    );
+  }
+
   it('should pass the authenticated user name to the header greeting', () => {
     expect(queryByTestId('dashboard-greeting')?.textContent).toContain('Olá, Jhonatan');
+  });
+
+  describe('first access', () => {
+    it('should mark the header as first access when navigated with justRegistered state', () => {
+      mockNavigationState({ justRegistered: true });
+
+      recreate();
+
+      expect(queryByTestId('dashboard-eyebrow')?.textContent?.trim()).toBe('Bem-vindo');
+    });
+
+    it('should default to the returning-user greeting without navigation state', () => {
+      mockNavigationState(undefined);
+
+      recreate();
+
+      expect(queryByTestId('dashboard-eyebrow')?.textContent?.trim()).toBe('Bem-vindo de volta');
+    });
   });
 
   describe('when checkSession fails', () => {
