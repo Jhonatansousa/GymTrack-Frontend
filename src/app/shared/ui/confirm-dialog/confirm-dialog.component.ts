@@ -50,8 +50,9 @@ import {
           <button
             type="button"
             data-testid="confirm-dialog-confirm"
+            [disabled]="isConfirming()"
             (click)="confirm.emit()"
-            class="rounded bg-error px-4 py-2.5 text-sm font-semibold text-white transition-opacity duration-150 hover:opacity-90"
+            class="rounded bg-error px-4 py-2.5 text-sm font-semibold text-white transition-opacity duration-150 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {{ confirmLabel() }}
           </button>
@@ -65,6 +66,7 @@ export class ConfirmDialogComponent {
   readonly message = input('');
   readonly confirmLabel = input('Confirmar');
   readonly cancelLabel = input('Cancelar');
+  readonly isConfirming = input(false);
 
   readonly confirm = output<void>();
   readonly cancel = output<void>();
