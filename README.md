@@ -37,14 +37,19 @@ Em resumo: aprender e aplicar disciplina de desenvolvimento em um produto real, 
 - Tratamento explícito de erros HTTP (401, 409, etc.) na camada de UI
 - Auth Guard funcional consumindo `/auth/me` para proteger rotas
 - Redirecionamento para `/dashboard` após login/registro bem-sucedidos
-- Tela inicial pós-login (dashboard mínimo) protegida por guard
+- Dashboard com saudação personalizada (via `/auth/me`), incluindo variação "Bem-vindo" para o
+  usuário recém-registrado (primeiro acesso) vs. "Bem-vindo de volta" nos acessos seguintes
+- CRUD completo de Divisões de Treino no dashboard: listagem em grid, empty state, criação, edição
+  (renomear) e exclusão com modal de confirmação avisando sobre a cascata (exercícios/sets)
+- Modais de formulário e confirmação acessíveis (fecham no `Esc`, foco inicial gerenciado, botões
+  desabilitados durante requisições em andamento) — construídos sem dependência de dialog/overlay
+- Endpoint de logout integrado e ação de sair na UI (menu do usuário no header do dashboard)
 - Testes unitários cobrindo o fluxo completo de autenticação (componentes, serviço, guard e interceptors)
+  e o CRUD de divisões (serviço, componentes smart/dumb e modais)
 
 ### Funcionalidades ainda em construção
 
-- Gestão completa de treino (CRUD de divisões, exercícios e sets)
-- Conteúdo real do dashboard pós-login (visão consolidada do treino)
-- Endpoint de logout integrado e ação de sair na UI
+- Gestão de exercícios e sets (CRUD por divisão/exercício)
 - Melhorias de UX, feedback assíncrono e acessibilidade avançada
 
 ## 3. Stack e Versões
@@ -86,6 +91,8 @@ src/
 			guards/
 				auth.guard.ts
 				auth.guard.spec.ts
+				guest.guard.ts
+				guest.guard.spec.ts
 			interceptors/
 				credentials.interceptor.ts
 				credentials.interceptor.spec.ts
@@ -93,9 +100,12 @@ src/
 				error.interceptor.spec.ts
 			models/
 				auth.model.ts
+				division.model.ts
 			services/
 				auth.service.ts
 				auth.service.spec.ts
+				divisions.service.ts
+				divisions.service.spec.ts
 		features/
 			auth/
 				login/
@@ -105,9 +115,15 @@ src/
 					register.component.ts
 					register.component.spec.ts
 			dashboard/
+				components/
+					dashboard-header/
+					division-card/
+					division-form/
 				dashboard.component.ts
 				dashboard.component.spec.ts
 		shared/
+			ui/
+				confirm-dialog/
 			utils/
 				form-errors.ts
 				form-errors.spec.ts
@@ -232,14 +248,14 @@ npm run lint
 - [x] Sessão autenticada via HttpOnly cookie (sem token em JS)
 - [x] Guardas de rota para áreas autenticadas
 - [x] Tela inicial pós-login
-- [ ] Endpoint e ação de logout integrados na UI
+- [x] Endpoint e ação de logout integrados na UI
 
 ### Médio prazo
 
-- CRUD de divisões de treino
-- CRUD de exercícios por divisão
-- CRUD de sets por exercício
-- Feedback assíncrono (loading, sucesso, erro)
+- [x] CRUD de divisões de treino
+- [ ] CRUD de exercícios por divisão
+- [ ] CRUD de sets por exercício
+- [x] Feedback assíncrono (loading, sucesso, erro) no fluxo de divisões
 
 ### Próximos passos de arquitetura
 
