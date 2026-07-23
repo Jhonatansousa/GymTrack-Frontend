@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  effect,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -30,6 +39,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
         <div class="mt-6 flex justify-end gap-3">
           <button
+            #cancelButton
             type="button"
             data-testid="confirm-dialog-cancel"
             (click)="cancel.emit()"
@@ -58,4 +68,17 @@ export class ConfirmDialogComponent {
 
   readonly confirm = output<void>();
   readonly cancel = output<void>();
+
+  private readonly cancelButton = viewChild<ElementRef<HTMLButtonElement>>('cancelButton');
+
+  constructor() {
+    // Focus the cancel button, not confirm: this dialog's primary action is
+    // destructive, so an accidental Enter keypress should not delete anything.
+    effect(() => this.cancelButton()?.nativeElement.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cancel.emit();
+  }
 }
