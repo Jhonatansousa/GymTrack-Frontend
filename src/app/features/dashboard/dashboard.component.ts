@@ -105,6 +105,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
           [submitLabel]="editingDivision() ? 'Salvar' : 'Criar'"
           [initialName]="editingDivision()?.name ?? ''"
           [errorMessage]="formError()"
+          [isSubmitting]="isSubmitting()"
           (save)="onSubmitForm($event)"
           (cancel)="closeForm()"
         />
@@ -119,6 +120,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
             '» e todos os seus exercícios e séries. Esta ação não pode ser desfeita.'
           "
           confirmLabel="Excluir"
+          [isConfirming]="isDeleting()"
           (confirm)="confirmDelete()"
           (cancel)="cancelDelete()"
         />
@@ -137,6 +139,8 @@ export class DashboardComponent {
   readonly formError = signal('');
   readonly editingDivision = signal<Division | null>(null);
   readonly divisionToDelete = signal<Division | null>(null);
+  readonly isSubmitting = signal(false);
+  readonly isDeleting = signal(false);
 
   // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
   // this component is being activated by the router, not after activation completes.
@@ -177,12 +181,17 @@ export class DashboardComponent {
       : this.divisionsService.create(name);
 
     this.formError.set('');
+    this.isSubmitting.set(true);
     request.subscribe({
       next: () => {
+        this.isSubmitting.set(false);
         this.closeForm();
         this.loadDivisions();
       },
-      error: (error: HttpErrorResponse) => this.formError.set(this.mapFormError(error)),
+      error: (error: HttpErrorResponse) => {
+        this.isSubmitting.set(false);
+        this.formError.set(this.mapFormError(error));
+      },
     });
   }
 
@@ -209,11 +218,14 @@ export class DashboardComponent {
     const division = this.divisionToDelete();
     if (!division) return;
 
+    this.isDeleting.set(true);
     this.divisionsService.remove(division.id).subscribe({
       next: () => {
+        this.isDeleting.set(false);
         this.divisionToDelete.set(null);
         this.loadDivisions();
       },
+      error: () => this.isDeleting.set(false),
     });
   }
 
