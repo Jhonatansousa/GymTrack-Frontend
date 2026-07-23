@@ -21,7 +21,11 @@ import { DivisionFormComponent } from './components/division-form/division-form.
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
-      <app-dashboard-header [userName]="userName()" (logout)="onLogout()" />
+      <app-dashboard-header
+        [userName]="userName()"
+        [isFirstAccess]="isFirstAccess"
+        (logout)="onLogout()"
+      />
 
       @if (divisions().length > 0) {
         <section aria-labelledby="divisions-heading">
@@ -133,6 +137,11 @@ export class DashboardComponent {
   readonly formError = signal('');
   readonly editingDivision = signal<Division | null>(null);
   readonly divisionToDelete = signal<Division | null>(null);
+
+  // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
+  // this component is being activated by the router, not after activation completes.
+  readonly isFirstAccess =
+    this.router.getCurrentNavigation()?.extras.state?.['justRegistered'] === true;
 
   constructor() {
     this.authService.checkSession().subscribe({
