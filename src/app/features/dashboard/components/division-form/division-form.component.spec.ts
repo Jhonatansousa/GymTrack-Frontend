@@ -74,6 +74,26 @@ describe('DivisionFormComponent', () => {
     expect(cancelSpy).toHaveBeenCalled();
   });
 
+  describe('accessibility', () => {
+    it('should focus the name input on init', () => {
+      const focusSpy = vi.spyOn(HTMLInputElement.prototype, 'focus');
+
+      const freshFixture = TestBed.createComponent(DivisionFormComponent);
+      freshFixture.detectChanges();
+
+      expect(focusSpy).toHaveBeenCalled();
+    });
+
+    it('should emit cancel when Escape is pressed', () => {
+      const cancelSpy = vi.fn();
+      component.cancel.subscribe(cancelSpy);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      expect(cancelSpy).toHaveBeenCalled();
+    });
+  });
+
   describe('edit mode', () => {
     it('should render a custom heading and submit label', () => {
       fixture.componentRef.setInput('heading', 'Editar Divisão');
