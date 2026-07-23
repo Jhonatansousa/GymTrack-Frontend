@@ -46,7 +46,7 @@ describe('ConfirmDialogComponent', () => {
 
   it('should emit cancel when the cancel button is clicked', () => {
     const cancelSpy = vi.fn();
-    component.cancel.subscribe(cancelSpy);
+    component.cancelled.subscribe(cancelSpy);
 
     (queryByTestId('confirm-dialog-cancel') as HTMLButtonElement).click();
 
@@ -72,7 +72,7 @@ describe('ConfirmDialogComponent', () => {
 
     it('should emit cancel when Escape is pressed', () => {
       const cancelSpy = vi.fn();
-      component.cancel.subscribe(cancelSpy);
+      component.cancelled.subscribe(cancelSpy);
 
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
