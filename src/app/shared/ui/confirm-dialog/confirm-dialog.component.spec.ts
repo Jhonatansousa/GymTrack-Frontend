@@ -79,4 +79,17 @@ describe('ConfirmDialogComponent', () => {
       expect(cancelSpy).toHaveBeenCalled();
     });
   });
+
+  describe('confirming state', () => {
+    it('should disable the confirm button while isConfirming is true', () => {
+      fixture.componentRef.setInput('isConfirming', true);
+      fixture.detectChanges();
+
+      expect((queryByTestId('confirm-dialog-confirm') as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('should keep the confirm button enabled by default', () => {
+      expect((queryByTestId('confirm-dialog-confirm') as HTMLButtonElement).disabled).toBe(false);
+    });
+  });
 });
