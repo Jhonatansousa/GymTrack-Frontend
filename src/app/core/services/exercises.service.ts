@@ -3,7 +3,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { Exercise, ExerciseResponse, ExercisesResponse } from '../models/exercise.model';
+import {
+  Exercise,
+  ExerciseDto,
+  ExerciseResponse,
+  ExercisesResponse,
+} from '../models/exercise.model';
+
+function toExercise(dto: ExerciseDto): Exercise {
+  return { id: dto.exerciseId, name: dto.exerciseName, workoutDivisionId: dto.workoutDivisionId };
+}
 
 @Injectable({ providedIn: 'root' })
 export class ExercisesService {
@@ -13,19 +22,17 @@ export class ExercisesService {
   getByDivision(divisionId: number): Observable<Exercise[]> {
     return this.http
       .get<ExercisesResponse>(`${this.baseUrl}/${divisionId}`)
-      .pipe(map((response) => response.results));
+      .pipe(map((response) => response.results.map(toExercise)));
   }
 
   create(name: string, workoutDivisionId: number): Observable<Exercise> {
     return this.http
       .post<ExerciseResponse>(this.baseUrl, { name, workoutDivisionId })
-      .pipe(map((response) => response.results));
+      .pipe(map((response) => toExercise(response.results)));
   }
 
-  update(id: number, newName: string): Observable<Exercise> {
-    return this.http
-      .patch<ExerciseResponse>(`${this.baseUrl}/${id}`, { newName })
-      .pipe(map((response) => response.results));
+  update(id: number, newName: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${id}`, { newExerciseName: newName });
   }
 
   remove(id: number): Observable<void> {

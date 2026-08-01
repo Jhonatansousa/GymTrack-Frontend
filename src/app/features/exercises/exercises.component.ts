@@ -168,13 +168,10 @@ export class ExercisesComponent {
 
   onSubmitForm(name: string): void {
     const editing = this.editingExercise();
-    const request = editing
-      ? this.exercisesService.update(editing.id, name)
-      : this.exercisesService.create(name, this.divisionId);
 
     this.formError.set('');
     this.isSubmitting.set(true);
-    request.subscribe({
+    const observer = {
       next: () => {
         this.isSubmitting.set(false);
         this.closeForm();
@@ -184,7 +181,13 @@ export class ExercisesComponent {
         this.isSubmitting.set(false);
         this.formError.set(this.mapFormError(error));
       },
-    });
+    };
+
+    if (editing) {
+      this.exercisesService.update(editing.id, name).subscribe(observer);
+    } else {
+      this.exercisesService.create(name, this.divisionId).subscribe(observer);
+    }
   }
 
   askDeleteExercise(exercise: Exercise): void {

@@ -66,9 +66,7 @@ describe('ExercisesComponent', () => {
     getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Pernas' }));
     getByDivisionSpy = vi.fn(() => of<Exercise[]>([]));
     createExerciseSpy = vi.fn(() => of<Exercise>({ id: 101, name: 'Supino Reto', workoutDivisionId: 5 }));
-    updateExerciseSpy = vi.fn(() =>
-      of<Exercise>({ id: 101, name: 'Supino Inclinado', workoutDivisionId: 5 }),
-    );
+    updateExerciseSpy = vi.fn(() => of<void>(undefined));
     removeExerciseSpy = vi.fn(() => of<void>(undefined));
     activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
 
