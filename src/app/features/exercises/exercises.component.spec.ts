@@ -1,13 +1,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Navigation, Router, provideRouter } from '@angular/router';
+import {
+  ActivatedRoute,
+  Navigation,
+  Router,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import { MockInstance, vi } from 'vitest';
+import { of } from 'rxjs';
 
+import { Division } from '../../core/models/division.model';
+import { DivisionsService } from '../../core/services/divisions.service';
 import { ExercisesComponent } from './exercises.component';
 
 describe('ExercisesComponent', () => {
   let fixture: ComponentFixture<ExercisesComponent>;
   let compiled: HTMLElement;
   let navigateSpy: MockInstance<Router['navigate']>;
+  let getByIdSpy: ReturnType<typeof vi.fn>;
+  let activatedRouteMock: { snapshot: { paramMap: ReturnType<typeof convertToParamMap> } };
 
   function queryByTestId(testId: string): HTMLElement | null {
     return compiled.querySelector(`[data-testid='${testId}']`);
@@ -27,9 +38,16 @@ describe('ExercisesComponent', () => {
   }
 
   beforeEach(() => {
+    getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Pernas' }));
+    activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
+
     TestBed.configureTestingModule({
       imports: [ExercisesComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: activatedRouteMock },
+        { provide: DivisionsService, useValue: { getById: getByIdSpy } },
+      ],
     });
 
     const router = TestBed.inject(Router);
@@ -57,5 +75,24 @@ describe('ExercisesComponent', () => {
     (queryByTestId('back-to-divisions-button') as HTMLButtonElement).click();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  describe('division name fallback', () => {
+    it('should not call getById when the name is available from navigation state', () => {
+      mockNavigationState({ divisionName: 'Pernas' });
+      createComponent();
+
+      expect(getByIdSpy).not.toHaveBeenCalled();
+    });
+
+    it('should fetch the division name via getById when navigation state is missing', () => {
+      mockNavigationState(undefined);
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+
+      createComponent();
+
+      expect(getByIdSpy).toHaveBeenCalledWith(5);
+      expect(queryByTestId('exercises-heading')?.textContent).toContain('Pernas');
+    });
   });
 });
