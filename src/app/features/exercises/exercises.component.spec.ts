@@ -11,6 +11,8 @@ import { of } from 'rxjs';
 
 import { Division } from '../../core/models/division.model';
 import { DivisionsService } from '../../core/services/divisions.service';
+import { Exercise } from '../../core/models/exercise.model';
+import { ExercisesService } from '../../core/services/exercises.service';
 import { ExercisesComponent } from './exercises.component';
 
 describe('ExercisesComponent', () => {
@@ -18,10 +20,15 @@ describe('ExercisesComponent', () => {
   let compiled: HTMLElement;
   let navigateSpy: MockInstance<Router['navigate']>;
   let getByIdSpy: ReturnType<typeof vi.fn>;
+  let getByDivisionSpy: ReturnType<typeof vi.fn>;
   let activatedRouteMock: { snapshot: { paramMap: ReturnType<typeof convertToParamMap> } };
 
   function queryByTestId(testId: string): HTMLElement | null {
     return compiled.querySelector(`[data-testid='${testId}']`);
+  }
+
+  function queryAllByTestId(testId: string): HTMLElement[] {
+    return Array.from(compiled.querySelectorAll(`[data-testid='${testId}']`));
   }
 
   function mockNavigationState(state: Record<string, unknown> | undefined): void {
@@ -39,6 +46,7 @@ describe('ExercisesComponent', () => {
 
   beforeEach(() => {
     getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Pernas' }));
+    getByDivisionSpy = vi.fn(() => of<Exercise[]>([]));
     activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
 
     TestBed.configureTestingModule({
@@ -47,6 +55,7 @@ describe('ExercisesComponent', () => {
         provideRouter([]),
         { provide: ActivatedRoute, useValue: activatedRouteMock },
         { provide: DivisionsService, useValue: { getById: getByIdSpy } },
+        { provide: ExercisesService, useValue: { getByDivision: getByDivisionSpy } },
       ],
     });
 
@@ -93,6 +102,60 @@ describe('ExercisesComponent', () => {
 
       expect(getByIdSpy).toHaveBeenCalledWith(5);
       expect(queryByTestId('exercises-heading')?.textContent).toContain('Pernas');
+    });
+  });
+
+  describe('exercises list', () => {
+    it('should load the exercises for the division id from the route', () => {
+      mockNavigationState({ divisionName: 'Peito' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+
+      createComponent();
+
+      expect(getByDivisionSpy).toHaveBeenCalledWith(5);
+    });
+
+    describe('when the division has exercises', () => {
+      const exercises: Exercise[] = [
+        { id: 101, name: 'Supino Reto', workoutDivisionId: 5 },
+        { id: 102, name: 'Crucifixo', workoutDivisionId: 5 },
+      ];
+
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito' });
+        getByDivisionSpy.mockReturnValue(of(exercises));
+        createComponent();
+      });
+
+      it('should render one row per exercise with its name', () => {
+        const rows = queryAllByTestId('exercise-row');
+
+        expect(rows).toHaveLength(2);
+        expect(rows[0].textContent).toContain('Supino Reto');
+        expect(rows[1].textContent).toContain('Crucifixo');
+      });
+
+      it('should not render the empty state', () => {
+        expect(queryByTestId('exercises-empty')).toBeFalsy();
+      });
+    });
+
+    describe('when the division has no exercises', () => {
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito' });
+        getByDivisionSpy.mockReturnValue(of<Exercise[]>([]));
+        createComponent();
+      });
+
+      it('should render the empty state', () => {
+        expect(queryByTestId('exercises-empty')?.textContent).toContain(
+          'Nenhum exercício cadastrado nesta divisão ainda',
+        );
+      });
+
+      it('should not render any exercise row', () => {
+        expect(queryAllByTestId('exercise-row')).toHaveLength(0);
+      });
     });
   });
 });
