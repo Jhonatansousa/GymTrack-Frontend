@@ -42,6 +42,22 @@ describe('DivisionsService', () => {
     });
   });
 
+  describe('getById', () => {
+    it('should GET /divisions/:id and emit the division from the response envelope', () => {
+      const division: Division = { id: 5, name: 'Pernas' };
+      let emitted: Division | undefined;
+
+      service.getById(5).subscribe((result) => (emitted = result));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/divisions/5`);
+      expect(req.request.method).toBe('GET');
+
+      req.flush({ results: division });
+
+      expect(emitted).toEqual(division);
+    });
+  });
+
   describe('create', () => {
     it('should POST /divisions with the name and emit the created division', () => {
       const created: Division = { id: 3, name: 'Pernas' };
