@@ -54,6 +54,7 @@ import { DivisionFormComponent } from './components/division-form/division-form.
             @for (division of divisions(); track division.id) {
               <app-division-card
                 [division]="division"
+                (open)="openExercises(division)"
                 (edit)="openEditForm(division)"
                 (remove)="askDeleteDivision(division)"
               />
@@ -156,6 +157,12 @@ export class DashboardComponent {
       },
     });
     this.loadDivisions();
+  }
+
+  openExercises(division: Division): void {
+    void this.router.navigate(['/dashboard/divisions', division.id, 'exercises'], {
+      state: { divisionName: division.name },
+    });
   }
 
   openForm(): void {

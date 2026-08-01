@@ -33,6 +33,14 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'dashboard/divisions/:id/exercises',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/exercises/exercises.component').then(
+                (m) => m.ExercisesComponent
+            ),
+    },
+    {
         path: '**',
         loadComponent: () =>
             import('./shared/not-found/not-found.component').then(
