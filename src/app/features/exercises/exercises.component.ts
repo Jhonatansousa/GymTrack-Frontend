@@ -1,14 +1,16 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Exercise } from '../../core/models/exercise.model';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { ExercisesService } from '../../core/services/exercises.service';
+import { ExerciseFormComponent } from './components/exercise-form/exercise-form.component';
 import { ExerciseRowComponent } from './components/exercise-row/exercise-row.component';
 
 @Component({
   selector: 'app-exercises',
-  imports: [ExerciseRowComponent],
+  imports: [ExerciseFormComponent, ExerciseRowComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -30,19 +32,32 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
         Divisões
       </button>
 
-      <div>
-        <p
-          data-testid="exercises-eyebrow"
-          class="mb-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-accent"
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p
+            data-testid="exercises-eyebrow"
+            class="mb-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-accent"
+          >
+            Divisão de treino
+          </p>
+          <h1
+            data-testid="exercises-heading"
+            class="font-serif text-3xl font-semibold tracking-tight text-text"
+          >
+            {{ divisionName() }}
+          </h1>
+        </div>
+        <button
+          type="button"
+          data-testid="add-exercise-button"
+          (click)="openForm()"
+          class="inline-flex items-center gap-2 rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim"
         >
-          Divisão de treino
-        </p>
-        <h1
-          data-testid="exercises-heading"
-          class="font-serif text-3xl font-semibold tracking-tight text-text"
-        >
-          {{ divisionName() }}
-        </h1>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          Adicionar Exercício
+        </button>
       </div>
 
       @if (exercises().length > 0) {
@@ -59,6 +74,17 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
           <p class="text-sm text-text-muted">Nenhum exercício cadastrado nesta divisão ainda.</p>
         </div>
       }
+
+      @if (isFormOpen()) {
+        <app-exercise-form
+          heading="Novo Exercício"
+          submitLabel="Criar"
+          [errorMessage]="formError()"
+          [isSubmitting]="isSubmitting()"
+          (save)="onSubmitForm($event)"
+          (cancelled)="closeForm()"
+        />
+      }
     </section>
   `,
 })
@@ -70,10 +96,13 @@ export class ExercisesComponent {
 
   readonly divisionName = signal('');
   readonly exercises = signal<Exercise[]>([]);
+  readonly isFormOpen = signal(false);
+  readonly formError = signal('');
+  readonly isSubmitting = signal(false);
+
+  private readonly divisionId = Number(this.route.snapshot.paramMap.get('id'));
 
   constructor() {
-    const divisionId = Number(this.route.snapshot.paramMap.get('id'));
-
     // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
     // this component is being activated by the router, not after activation completes.
     const stateDivisionName = this.router.getCurrentNavigation()?.extras.state?.[
@@ -83,17 +112,55 @@ export class ExercisesComponent {
     if (stateDivisionName) {
       this.divisionName.set(stateDivisionName);
     } else {
-      this.divisionsService.getById(divisionId).subscribe({
+      this.divisionsService.getById(this.divisionId).subscribe({
         next: (division) => this.divisionName.set(division.name),
       });
     }
 
-    this.exercisesService.getByDivision(divisionId).subscribe({
-      next: (exercises) => this.exercises.set(exercises),
-    });
+    this.loadExercises();
   }
 
   onBack(): void {
     void this.router.navigate(['/dashboard']);
+  }
+
+  openForm(): void {
+    this.formError.set('');
+    this.isFormOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.isFormOpen.set(false);
+  }
+
+  onSubmitForm(name: string): void {
+    this.formError.set('');
+    this.isSubmitting.set(true);
+    this.exercisesService.create(name, this.divisionId).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.closeForm();
+        this.loadExercises();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.isSubmitting.set(false);
+        this.formError.set(this.mapFormError(error));
+      },
+    });
+  }
+
+  private mapFormError(error: HttpErrorResponse): string {
+    switch (error.status) {
+      case 409:
+        return 'Já existe um exercício com esse nome.';
+      default:
+        return 'Não foi possível salvar o exercício. Tente novamente.';
+    }
+  }
+
+  private loadExercises(): void {
+    this.exercisesService.getByDivision(this.divisionId).subscribe({
+      next: (exercises) => this.exercises.set(exercises),
+    });
   }
 }
