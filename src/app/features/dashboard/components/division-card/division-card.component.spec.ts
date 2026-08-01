@@ -50,4 +50,31 @@ describe('DivisionCardComponent', () => {
 
     expect(removeSpy).toHaveBeenCalled();
   });
+
+  it('should emit open when the card is clicked', () => {
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('division-card') as HTMLElement).click();
+
+    expect(openSpy).toHaveBeenCalled();
+  });
+
+  it('should not emit open when the edit button is clicked', () => {
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('division-card-edit') as HTMLButtonElement).click();
+
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not emit open when the delete button is clicked', () => {
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('division-card-delete') as HTMLButtonElement).click();
+
+    expect(openSpy).not.toHaveBeenCalled();
+  });
 });
