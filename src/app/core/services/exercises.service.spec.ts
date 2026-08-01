@@ -59,4 +59,21 @@ describe('ExercisesService', () => {
       expect(emitted).toEqual(exercise);
     });
   });
+
+  describe('update', () => {
+    it('should PATCH /exercises/:id with the new name and emit the updated exercise', () => {
+      const updated: Exercise = { id: 101, name: 'Supino Reto com Halteres', workoutDivisionId: 1 };
+      let emitted: Exercise | undefined;
+
+      service.update(101, 'Supino Reto com Halteres').subscribe((result) => (emitted = result));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/exercises/101`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ newName: 'Supino Reto com Halteres' });
+
+      req.flush({ results: updated });
+
+      expect(emitted).toEqual(updated);
+    });
+  });
 });
