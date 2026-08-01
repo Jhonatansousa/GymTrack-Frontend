@@ -24,6 +24,7 @@ describe('ExercisesComponent', () => {
   let getByDivisionSpy: ReturnType<typeof vi.fn>;
   let createExerciseSpy: ReturnType<typeof vi.fn>;
   let updateExerciseSpy: ReturnType<typeof vi.fn>;
+  let removeExerciseSpy: ReturnType<typeof vi.fn>;
   let activatedRouteMock: { snapshot: { paramMap: ReturnType<typeof convertToParamMap> } };
 
   function queryByTestId(testId: string): HTMLElement | null {
@@ -68,6 +69,7 @@ describe('ExercisesComponent', () => {
     updateExerciseSpy = vi.fn(() =>
       of<Exercise>({ id: 101, name: 'Supino Inclinado', workoutDivisionId: 5 }),
     );
+    removeExerciseSpy = vi.fn(() => of<void>(undefined));
     activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
 
     TestBed.configureTestingModule({
@@ -82,6 +84,7 @@ describe('ExercisesComponent', () => {
             getByDivision: getByDivisionSpy,
             create: createExerciseSpy,
             update: updateExerciseSpy,
+            remove: removeExerciseSpy,
           },
         },
       ],
@@ -277,6 +280,46 @@ describe('ExercisesComponent', () => {
       expect(queryByTestId('exercise-form-error')?.textContent).toContain(
         'Já existe um exercício com esse nome.',
       );
+    });
+  });
+
+  describe('delete exercise', () => {
+    const exercise: Exercise = { id: 101, name: 'Supino Reto', workoutDivisionId: 5 };
+
+    beforeEach(() => {
+      mockNavigationState({ divisionName: 'Peito' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      getByDivisionSpy.mockReturnValue(of([exercise]));
+      createComponent();
+    });
+
+    it('should open a confirmation dialog warning about the cascade when delete is clicked', () => {
+      clickByTestId('exercise-row-delete');
+
+      expect(queryByTestId('confirm-dialog')).toBeTruthy();
+      expect(queryByTestId('confirm-dialog-message')?.textContent).toContain('séries');
+    });
+
+    it('should remove the exercise, reload and close the dialog on confirm', () => {
+      clickByTestId('exercise-row-delete');
+
+      getByDivisionSpy.mockClear();
+      getByDivisionSpy.mockReturnValueOnce(of<Exercise[]>([]));
+
+      clickByTestId('confirm-dialog-confirm');
+
+      expect(removeExerciseSpy).toHaveBeenCalledWith(101);
+      expect(getByDivisionSpy).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('confirm-dialog')).toBeFalsy();
+      expect(queryAllByTestId('exercise-row')).toHaveLength(0);
+    });
+
+    it('should close the dialog without deleting on cancel', () => {
+      clickByTestId('exercise-row-delete');
+      clickByTestId('confirm-dialog-cancel');
+
+      expect(removeExerciseSpy).not.toHaveBeenCalled();
+      expect(queryByTestId('confirm-dialog')).toBeFalsy();
     });
   });
 });
