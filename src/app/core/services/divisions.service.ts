@@ -14,6 +14,12 @@ export class DivisionsService {
     return this.http.get<DivisionsResponse>(this.baseUrl).pipe(map((response) => response.results));
   }
 
+  getById(id: number): Observable<Division> {
+    return this.http
+      .get<DivisionResponse>(`${this.baseUrl}/${id}`)
+      .pipe(map((response) => response.results));
+  }
+
   create(name: string): Observable<Division> {
     return this.http
       .post<DivisionResponse>(this.baseUrl, { name })
