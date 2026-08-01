@@ -21,4 +21,10 @@ export class ExercisesService {
       .post<ExerciseResponse>(this.baseUrl, { name, workoutDivisionId })
       .pipe(map((response) => response.results));
   }
+
+  update(id: number, newName: string): Observable<Exercise> {
+    return this.http
+      .patch<ExerciseResponse>(`${this.baseUrl}/${id}`, { newName })
+      .pipe(map((response) => response.results));
+  }
 }
