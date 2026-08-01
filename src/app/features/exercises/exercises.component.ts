@@ -63,7 +63,11 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
       @if (exercises().length > 0) {
         <div class="flex flex-col gap-2.5">
           @for (exercise of exercises(); track exercise.id; let i = $index) {
-            <app-exercise-row [exercise]="exercise" [index]="i" />
+            <app-exercise-row
+              [exercise]="exercise"
+              [index]="i"
+              (edit)="openEditForm(exercise)"
+            />
           }
         </div>
       } @else {
@@ -77,8 +81,9 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
 
       @if (isFormOpen()) {
         <app-exercise-form
-          heading="Novo Exercício"
-          submitLabel="Criar"
+          [heading]="editingExercise() ? 'Editar Exercício' : 'Novo Exercício'"
+          [submitLabel]="editingExercise() ? 'Salvar' : 'Criar'"
+          [initialName]="editingExercise()?.name ?? ''"
           [errorMessage]="formError()"
           [isSubmitting]="isSubmitting()"
           (save)="onSubmitForm($event)"
@@ -99,6 +104,7 @@ export class ExercisesComponent {
   readonly isFormOpen = signal(false);
   readonly formError = signal('');
   readonly isSubmitting = signal(false);
+  readonly editingExercise = signal<Exercise | null>(null);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -125,18 +131,31 @@ export class ExercisesComponent {
   }
 
   openForm(): void {
+    this.editingExercise.set(null);
+    this.formError.set('');
+    this.isFormOpen.set(true);
+  }
+
+  openEditForm(exercise: Exercise): void {
+    this.editingExercise.set(exercise);
     this.formError.set('');
     this.isFormOpen.set(true);
   }
 
   closeForm(): void {
     this.isFormOpen.set(false);
+    this.editingExercise.set(null);
   }
 
   onSubmitForm(name: string): void {
+    const editing = this.editingExercise();
+    const request = editing
+      ? this.exercisesService.update(editing.id, name)
+      : this.exercisesService.create(name, this.divisionId);
+
     this.formError.set('');
     this.isSubmitting.set(true);
-    this.exercisesService.create(name, this.divisionId).subscribe({
+    request.subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.closeForm();
