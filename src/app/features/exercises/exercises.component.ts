@@ -5,12 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Exercise } from '../../core/models/exercise.model';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { ExercisesService } from '../../core/services/exercises.service';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { ExerciseFormComponent } from './components/exercise-form/exercise-form.component';
 import { ExerciseRowComponent } from './components/exercise-row/exercise-row.component';
 
 @Component({
   selector: 'app-exercises',
-  imports: [ExerciseFormComponent, ExerciseRowComponent],
+  imports: [ConfirmDialogComponent, ExerciseFormComponent, ExerciseRowComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -67,6 +68,7 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
               [exercise]="exercise"
               [index]="i"
               (edit)="openEditForm(exercise)"
+              (remove)="askDeleteExercise(exercise)"
             />
           }
         </div>
@@ -90,6 +92,21 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
           (cancelled)="closeForm()"
         />
       }
+
+      @if (exerciseToDelete(); as exercise) {
+        <app-confirm-dialog
+          title="Excluir exercício"
+          [message]="
+            'Isso vai apagar o exercício «' +
+            exercise.name +
+            '» e todas as suas séries. Esta ação não pode ser desfeita.'
+          "
+          confirmLabel="Excluir"
+          [isConfirming]="isDeleting()"
+          (confirm)="confirmDelete()"
+          (cancelled)="cancelDelete()"
+        />
+      }
     </section>
   `,
 })
@@ -105,6 +122,8 @@ export class ExercisesComponent {
   readonly formError = signal('');
   readonly isSubmitting = signal(false);
   readonly editingExercise = signal<Exercise | null>(null);
+  readonly exerciseToDelete = signal<Exercise | null>(null);
+  readonly isDeleting = signal(false);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -165,6 +184,29 @@ export class ExercisesComponent {
         this.isSubmitting.set(false);
         this.formError.set(this.mapFormError(error));
       },
+    });
+  }
+
+  askDeleteExercise(exercise: Exercise): void {
+    this.exerciseToDelete.set(exercise);
+  }
+
+  cancelDelete(): void {
+    this.exerciseToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const exercise = this.exerciseToDelete();
+    if (!exercise) return;
+
+    this.isDeleting.set(true);
+    this.exercisesService.remove(exercise.id).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.exerciseToDelete.set(null);
+        this.loadExercises();
+      },
+      error: () => this.isDeleting.set(false),
     });
   }
 
