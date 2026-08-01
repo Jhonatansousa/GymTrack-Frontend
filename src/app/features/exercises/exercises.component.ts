@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { DivisionsService } from '../../core/services/divisions.service';
 
 @Component({
   selector: 'app-exercises',
@@ -35,7 +37,7 @@ import { Router } from '@angular/router';
           data-testid="exercises-heading"
           class="font-serif text-3xl font-semibold tracking-tight text-text"
         >
-          {{ divisionName }}
+          {{ divisionName() }}
         </h1>
       </div>
     </section>
@@ -43,12 +45,30 @@ import { Router } from '@angular/router';
 })
 export class ExercisesComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly divisionsService = inject(DivisionsService);
 
-  // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
-  // this component is being activated by the router, not after activation completes.
-  readonly divisionName =
-    (this.router.getCurrentNavigation()?.extras.state?.['divisionName'] as string | undefined) ??
-    '';
+  readonly divisionName = signal('');
+
+  constructor() {
+    // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
+    // this component is being activated by the router, not after activation completes.
+    const stateDivisionName = this.router.getCurrentNavigation()?.extras.state?.[
+      'divisionName'
+    ] as string | undefined;
+
+    if (stateDivisionName) {
+      this.divisionName.set(stateDivisionName);
+      return;
+    }
+
+    const divisionId = this.route.snapshot.paramMap.get('id');
+    if (divisionId) {
+      this.divisionsService.getById(Number(divisionId)).subscribe({
+        next: (division) => this.divisionName.set(division.name),
+      });
+    }
+  }
 
   onBack(): void {
     void this.router.navigate(['/dashboard']);
