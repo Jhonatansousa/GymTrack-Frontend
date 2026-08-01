@@ -333,6 +333,23 @@ describe('DashboardComponent', () => {
     });
   });
 
+  describe('open division', () => {
+    const division: Division = { id: 5, name: 'Pernas' };
+
+    beforeEach(() => {
+      getAllSpy.mockReturnValue(of([division]));
+      recreate();
+    });
+
+    it("should navigate to the division's exercises page with the name in state", () => {
+      clickByTestId('division-card');
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/dashboard/divisions', 5, 'exercises'], {
+        state: { divisionName: 'Pernas' },
+      });
+    });
+  });
+
   describe('async request states', () => {
     it('should disable the form submit while create is in flight', () => {
       const inFlight = new Subject<Division>();
