@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -7,7 +8,7 @@ import {
   provideRouter,
 } from '@angular/router';
 import { MockInstance, vi } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { Division } from '../../core/models/division.model';
 import { DivisionsService } from '../../core/services/divisions.service';
@@ -21,6 +22,7 @@ describe('ExercisesComponent', () => {
   let navigateSpy: MockInstance<Router['navigate']>;
   let getByIdSpy: ReturnType<typeof vi.fn>;
   let getByDivisionSpy: ReturnType<typeof vi.fn>;
+  let createExerciseSpy: ReturnType<typeof vi.fn>;
   let activatedRouteMock: { snapshot: { paramMap: ReturnType<typeof convertToParamMap> } };
 
   function queryByTestId(testId: string): HTMLElement | null {
@@ -44,9 +46,24 @@ describe('ExercisesComponent', () => {
     fixture.detectChanges();
   }
 
+  function clickByTestId(testId: string): void {
+    (queryByTestId(testId) as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
+  function fillAndSubmitForm(name: string): void {
+    const input = queryByTestId('exercise-form-name') as HTMLInputElement;
+    input.value = name;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    clickByTestId('exercise-form-submit');
+  }
+
   beforeEach(() => {
     getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Pernas' }));
     getByDivisionSpy = vi.fn(() => of<Exercise[]>([]));
+    createExerciseSpy = vi.fn(() => of<Exercise>({ id: 101, name: 'Supino Reto', workoutDivisionId: 5 }));
     activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
 
     TestBed.configureTestingModule({
@@ -55,7 +72,10 @@ describe('ExercisesComponent', () => {
         provideRouter([]),
         { provide: ActivatedRoute, useValue: activatedRouteMock },
         { provide: DivisionsService, useValue: { getById: getByIdSpy } },
-        { provide: ExercisesService, useValue: { getByDivision: getByDivisionSpy } },
+        {
+          provide: ExercisesService,
+          useValue: { getByDivision: getByDivisionSpy, create: createExerciseSpy },
+        },
       ],
     });
 
@@ -156,6 +176,52 @@ describe('ExercisesComponent', () => {
       it('should not render any exercise row', () => {
         expect(queryAllByTestId('exercise-row')).toHaveLength(0);
       });
+    });
+  });
+
+  describe('create exercise', () => {
+    beforeEach(() => {
+      mockNavigationState({ divisionName: 'Peito' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      createComponent();
+    });
+
+    it('should open the create form from the "Adicionar Exercício" button', () => {
+      expect(queryByTestId('exercise-form')).toBeFalsy();
+
+      clickByTestId('add-exercise-button');
+
+      expect(queryByTestId('exercise-form')).toBeTruthy();
+    });
+
+    it('should create the exercise for the current division, reload the list and close the form', () => {
+      clickByTestId('add-exercise-button');
+
+      getByDivisionSpy.mockClear();
+      getByDivisionSpy.mockReturnValueOnce(
+        of([{ id: 101, name: 'Supino Reto', workoutDivisionId: 5 }]),
+      );
+
+      fillAndSubmitForm('Supino Reto');
+
+      expect(createExerciseSpy).toHaveBeenCalledWith('Supino Reto', 5);
+      expect(getByDivisionSpy).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('exercise-form')).toBeFalsy();
+      expect(queryAllByTestId('exercise-row')).toHaveLength(1);
+    });
+
+    it('should keep the form open and show a conflict message on 409', () => {
+      createExerciseSpy.mockReturnValueOnce(
+        throwError(() => new HttpErrorResponse({ status: 409 })),
+      );
+
+      clickByTestId('add-exercise-button');
+      fillAndSubmitForm('Supino Reto');
+
+      expect(queryByTestId('exercise-form')).toBeTruthy();
+      expect(queryByTestId('exercise-form-error')?.textContent).toContain(
+        'Já existe um exercício com esse nome.',
+      );
     });
   });
 });
