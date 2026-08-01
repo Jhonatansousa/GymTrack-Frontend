@@ -6,8 +6,6 @@ import { environment } from '../../../environments/environment';
 import { Exercise } from '../models/exercise.model';
 import { ExercisesService } from './exercises.service';
 
-const exercise: Exercise = { id: 101, name: 'Supino Reto', workoutDivisionId: 1 };
-
 describe('ExercisesService', () => {
   let service: ExercisesService;
   let httpTesting: HttpTestingController;
@@ -26,11 +24,7 @@ describe('ExercisesService', () => {
   });
 
   describe('getByDivision', () => {
-    it('should GET /exercises/:divisionId and emit the exercises from the response envelope', () => {
-      const exercises: Exercise[] = [
-        { id: 101, name: 'Supino Reto', workoutDivisionId: 1 },
-        { id: 102, name: 'Crucifixo', workoutDivisionId: 1 },
-      ];
+    it('should GET /exercises/:divisionId and map exerciseId/exerciseName to id/name', () => {
       let emitted: Exercise[] | undefined;
 
       service.getByDivision(1).subscribe((result) => (emitted = result));
@@ -38,14 +32,23 @@ describe('ExercisesService', () => {
       const req = httpTesting.expectOne(`${environment.apiBaseUrl}/exercises/1`);
       expect(req.request.method).toBe('GET');
 
-      req.flush({ results: exercises });
+      req.flush({
+        status: 'SUCCESS',
+        results: [
+          { exerciseId: 101, exerciseName: 'Supino Reto', workoutDivisionId: 1 },
+          { exerciseId: 102, exerciseName: 'Crucifixo', workoutDivisionId: 1 },
+        ],
+      });
 
-      expect(emitted).toEqual(exercises);
+      expect(emitted).toEqual([
+        { id: 101, name: 'Supino Reto', workoutDivisionId: 1 },
+        { id: 102, name: 'Crucifixo', workoutDivisionId: 1 },
+      ]);
     });
   });
 
   describe('create', () => {
-    it('should POST /exercises with the name and division id, and emit the created exercise', () => {
+    it('should POST /exercises with the name and division id, and map the created exercise', () => {
       let emitted: Exercise | undefined;
 
       service.create('Supino Reto', 1).subscribe((result) => (emitted = result));
@@ -54,26 +57,28 @@ describe('ExercisesService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ name: 'Supino Reto', workoutDivisionId: 1 });
 
-      req.flush({ results: exercise });
+      req.flush({
+        status: 'SUCCESS',
+        results: { exerciseId: 101, exerciseName: 'Supino Reto', workoutDivisionId: 1 },
+      });
 
-      expect(emitted).toEqual(exercise);
+      expect(emitted).toEqual({ id: 101, name: 'Supino Reto', workoutDivisionId: 1 });
     });
   });
 
   describe('update', () => {
-    it('should PATCH /exercises/:id with the new name and emit the updated exercise', () => {
-      const updated: Exercise = { id: 101, name: 'Supino Reto com Halteres', workoutDivisionId: 1 };
-      let emitted: Exercise | undefined;
+    it('should PATCH /exercises/:id with the new name (backend returns no updated resource)', () => {
+      let completed = false;
 
-      service.update(101, 'Supino Reto com Halteres').subscribe((result) => (emitted = result));
+      service.update(101, 'Supino Reto com Halteres').subscribe(() => (completed = true));
 
       const req = httpTesting.expectOne(`${environment.apiBaseUrl}/exercises/101`);
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({ newName: 'Supino Reto com Halteres' });
+      expect(req.request.body).toEqual({ newExerciseName: 'Supino Reto com Halteres' });
 
-      req.flush({ results: updated });
+      req.flush({ status: 'SUCCESS' });
 
-      expect(emitted).toEqual(updated);
+      expect(completed).toBe(true);
     });
   });
 
