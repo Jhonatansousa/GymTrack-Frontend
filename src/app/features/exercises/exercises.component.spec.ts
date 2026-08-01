@@ -23,6 +23,7 @@ describe('ExercisesComponent', () => {
   let getByIdSpy: ReturnType<typeof vi.fn>;
   let getByDivisionSpy: ReturnType<typeof vi.fn>;
   let createExerciseSpy: ReturnType<typeof vi.fn>;
+  let updateExerciseSpy: ReturnType<typeof vi.fn>;
   let activatedRouteMock: { snapshot: { paramMap: ReturnType<typeof convertToParamMap> } };
 
   function queryByTestId(testId: string): HTMLElement | null {
@@ -64,6 +65,9 @@ describe('ExercisesComponent', () => {
     getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Pernas' }));
     getByDivisionSpy = vi.fn(() => of<Exercise[]>([]));
     createExerciseSpy = vi.fn(() => of<Exercise>({ id: 101, name: 'Supino Reto', workoutDivisionId: 5 }));
+    updateExerciseSpy = vi.fn(() =>
+      of<Exercise>({ id: 101, name: 'Supino Inclinado', workoutDivisionId: 5 }),
+    );
     activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
 
     TestBed.configureTestingModule({
@@ -74,7 +78,11 @@ describe('ExercisesComponent', () => {
         { provide: DivisionsService, useValue: { getById: getByIdSpy } },
         {
           provide: ExercisesService,
-          useValue: { getByDivision: getByDivisionSpy, create: createExerciseSpy },
+          useValue: {
+            getByDivision: getByDivisionSpy,
+            create: createExerciseSpy,
+            update: updateExerciseSpy,
+          },
         },
       ],
     });
@@ -219,6 +227,53 @@ describe('ExercisesComponent', () => {
       fillAndSubmitForm('Supino Reto');
 
       expect(queryByTestId('exercise-form')).toBeTruthy();
+      expect(queryByTestId('exercise-form-error')?.textContent).toContain(
+        'Já existe um exercício com esse nome.',
+      );
+    });
+  });
+
+  describe('edit exercise', () => {
+    const exercise: Exercise = { id: 101, name: 'Supino Reto', workoutDivisionId: 5 };
+
+    beforeEach(() => {
+      mockNavigationState({ divisionName: 'Peito' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      getByDivisionSpy.mockReturnValue(of([exercise]));
+      createComponent();
+    });
+
+    it('should open the form in edit mode prefilled when the row edit is clicked', () => {
+      clickByTestId('exercise-row-edit');
+
+      expect(queryByTestId('exercise-form')).toBeTruthy();
+      expect(queryByTestId('exercise-form-title')?.textContent).toContain('Editar Exercício');
+      expect((queryByTestId('exercise-form-name') as HTMLInputElement).value).toBe('Supino Reto');
+    });
+
+    it('should update the exercise, reload and close the form on save', () => {
+      clickByTestId('exercise-row-edit');
+
+      getByDivisionSpy.mockClear();
+      getByDivisionSpy.mockReturnValueOnce(
+        of([{ id: 101, name: 'Supino Inclinado', workoutDivisionId: 5 }]),
+      );
+
+      fillAndSubmitForm('Supino Inclinado');
+
+      expect(updateExerciseSpy).toHaveBeenCalledWith(101, 'Supino Inclinado');
+      expect(getByDivisionSpy).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('exercise-form')).toBeFalsy();
+    });
+
+    it('should show a conflict message on 409', () => {
+      updateExerciseSpy.mockReturnValueOnce(
+        throwError(() => new HttpErrorResponse({ status: 409 })),
+      );
+
+      clickByTestId('exercise-row-edit');
+      fillAndSubmitForm('Outro nome');
+
       expect(queryByTestId('exercise-form-error')?.textContent).toContain(
         'Já existe um exercício com esse nome.',
       );
