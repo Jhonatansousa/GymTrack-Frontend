@@ -76,4 +76,19 @@ describe('ExercisesService', () => {
       expect(emitted).toEqual(updated);
     });
   });
+
+  describe('remove', () => {
+    it('should DELETE /exercises/:id', () => {
+      let completed = false;
+
+      service.remove(101).subscribe(() => (completed = true));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/exercises/101`);
+      expect(req.request.method).toBe('DELETE');
+
+      req.flush(null);
+
+      expect(completed).toBe(true);
+    });
+  });
 });
