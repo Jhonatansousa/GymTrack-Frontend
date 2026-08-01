@@ -6,6 +6,8 @@ import { environment } from '../../../environments/environment';
 import { Exercise } from '../models/exercise.model';
 import { ExercisesService } from './exercises.service';
 
+const exercise: Exercise = { id: 101, name: 'Supino Reto', workoutDivisionId: 1 };
+
 describe('ExercisesService', () => {
   let service: ExercisesService;
   let httpTesting: HttpTestingController;
@@ -39,6 +41,22 @@ describe('ExercisesService', () => {
       req.flush({ results: exercises });
 
       expect(emitted).toEqual(exercises);
+    });
+  });
+
+  describe('create', () => {
+    it('should POST /exercises with the name and division id, and emit the created exercise', () => {
+      let emitted: Exercise | undefined;
+
+      service.create('Supino Reto', 1).subscribe((result) => (emitted = result));
+
+      const req = httpTesting.expectOne(`${environment.apiBaseUrl}/exercises`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ name: 'Supino Reto', workoutDivisionId: 1 });
+
+      req.flush({ results: exercise });
+
+      expect(emitted).toEqual(exercise);
     });
   });
 });
