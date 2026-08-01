@@ -8,14 +8,15 @@ import { Division } from '../../../../core/models/division.model';
   template: `
     <article
       data-testid="division-card"
-      class="relative rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-border-strong"
+      (click)="open.emit()"
+      class="relative cursor-pointer rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-border-strong"
     >
       <div class="absolute right-3 top-3 flex gap-1">
         <button
           type="button"
           data-testid="division-card-edit"
           aria-label="Editar divisão"
-          (click)="edit.emit()"
+          (click)="edit.emit(); $event.stopPropagation()"
           class="flex h-8 w-8 items-center justify-center rounded text-text-faint transition-colors duration-150 hover:bg-surface-raised hover:text-text"
         >
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -31,7 +32,7 @@ import { Division } from '../../../../core/models/division.model';
           type="button"
           data-testid="division-card-delete"
           aria-label="Excluir divisão"
-          (click)="remove.emit()"
+          (click)="remove.emit(); $event.stopPropagation()"
           class="flex h-8 w-8 items-center justify-center rounded text-text-faint transition-colors duration-150 hover:bg-error/15 hover:text-error"
         >
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -73,6 +74,7 @@ import { Division } from '../../../../core/models/division.model';
 export class DivisionCardComponent {
   readonly division = input.required<Division>();
 
+  readonly open = output<void>();
   readonly edit = output<void>();
   readonly remove = output<void>();
 }
