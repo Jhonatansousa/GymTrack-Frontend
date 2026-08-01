@@ -27,4 +27,8 @@ export class ExercisesService {
       .patch<ExerciseResponse>(`${this.baseUrl}/${id}`, { newName })
       .pipe(map((response) => response.results));
   }
+
+  remove(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
