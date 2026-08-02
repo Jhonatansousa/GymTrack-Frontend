@@ -35,7 +35,36 @@
 ## C. Exercises (`/exercises`)
 
 - **Relationship:** belong to a division (`workoutDivisionId`).
-- **Operations:** create (`name`), read (list by division), update (rename), delete.
+- **`POST /exercises`** — body `{ name, workoutDivisionId }`.
+- **`GET /exercises/{divisionId}`** — lists exercises for a division. **Path param, not query
+  string.** Response items are `{ exerciseId, exerciseName, workoutDivisionId }` — **not**
+  `{ id, name }` like divisions. See Hurdle H4 below before touching this service.
+- **`PATCH /exercises/{id}`** — body `{ newExerciseName }`, **not** `{ newName }` (divisions use
+  `newName` — the two resources are inconsistent with each other, not just with their own POST).
+  Response body is `{ status: "SUCCESS" }` with **no `results`** — the backend does not return the
+  updated resource, so `ExercisesService.update()` returns `Observable<void>`.
+- **`DELETE /exercises/{id}`** — 200 on success.
+- **No exercise-count / set-count field.** Same rule as divisions (§B): don't invent it on the
+  frontend. The prototype's "N séries" label is intentionally omitted until the backend adds it.
+
+### Hurdle H4 — Exercises use different field names than every other resource
+
+- **Problem:** `POST /divisions` and `PATCH /divisions/{id}` both key off `name`/`newName`, and the
+  divisions list returns `{ id, name }`. Exercises break that convention three ways at once:
+  the list response uses `exerciseId`/`exerciseName` (not `id`/`name`), `POST` still accepts a
+  plain `name` field, and `PATCH` expects `newExerciseName` (not `newName`). None of this is
+  written anywhere in the backend docs — it was found by inspecting real Network tab responses
+  after the create/rename/delete flow silently failed (rename sent `PATCH .../undefined` because
+  the frontend read a `.id` field that didn't exist on the response).
+- **Correct pattern:** never let a resource's raw field names leak past its service. `exercise.model.ts`
+  declares two shapes: `Exercise` (`{ id, name, workoutDivisionId }`, the clean shape every
+  component/spec uses) and `ExerciseDto` (`{ exerciseId, exerciseName, workoutDivisionId }`, the
+  literal backend shape). `ExercisesService` maps `ExerciseDto → Exercise` via a private `toExercise()`
+  function immediately after every HTTP call — no component, template, or spec outside
+  `exercises.service.ts`/`.spec.ts` ever sees `exerciseId`/`exerciseName`.
+- **Applies to:** any future resource whose backend field names don't match its own request body
+  keys. Before wiring a new service, flush a real request in the Network tab and compare the
+  response shape against what the request body used — don't assume symmetry.
 
 ## D. Sets (`/sets`)
 

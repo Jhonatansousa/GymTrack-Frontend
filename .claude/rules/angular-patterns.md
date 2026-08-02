@@ -17,6 +17,22 @@
 - Use built-in `@if`, `@for`, `@switch`, `@defer`.
 - **Never** `*ngIf` / `*ngFor` / `*ngSwitch`.
 
+### Hurdle H5 — `$event` in a pseudo-event binding types as `Event`, not the specific subtype
+
+- **Problem:** a binding like `(keydown.enter)="onActivateKey($event)"` looks like it should type
+  `$event` as `KeyboardEvent` — the `.enter` suffix filters by key — but Angular's template type
+  checker doesn't narrow based on that suffix. It stays `Event`. A handler declared as
+  `onActivateKey(event: KeyboardEvent)` fails the build with
+  `TS2345: Argument of type 'Event' is not assignable to parameter of type 'KeyboardEvent'`,
+  even though the code is logically correct and works at runtime.
+- **Correct pattern:** type the handler parameter as `Event` unless you truly need
+  `KeyboardEvent`-only members (`key`, `code`, `ctrlKey`, ...). `event.target`,
+  `event.currentTarget`, and `event.preventDefault()` all exist on the base `Event` interface, so
+  most keyboard-activation handlers (e.g. guarding against bubbled events from a child element)
+  never need the narrower type.
+- **Applies to:** any pseudo-event binding (`.enter`, `.space`, `.escape`, `.control.z`, ...) whose
+  handler is declared with a specific `Event` subtype.
+
 ## Dependency Injection
 
 - Use the `inject()` function; do **not** use constructor injection.
