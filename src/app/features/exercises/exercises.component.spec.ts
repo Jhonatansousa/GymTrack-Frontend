@@ -167,6 +167,10 @@ describe('ExercisesComponent', () => {
       it('should not render the empty state', () => {
         expect(queryByTestId('exercises-empty')).toBeFalsy();
       });
+
+      it('should not render the load-error message', () => {
+        expect(queryByTestId('exercises-load-error')).toBeFalsy();
+      });
     });
 
     describe('when the division has no exercises', () => {
@@ -180,6 +184,27 @@ describe('ExercisesComponent', () => {
         expect(queryByTestId('exercises-empty')?.textContent).toContain(
           'Nenhum exercício cadastrado nesta divisão ainda',
         );
+      });
+
+      it('should not render any exercise row', () => {
+        expect(queryAllByTestId('exercise-row')).toHaveLength(0);
+      });
+    });
+
+    describe('when loading fails', () => {
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito' });
+        getByDivisionSpy.mockReturnValue(
+          throwError(() => new HttpErrorResponse({ status: 500 })),
+        );
+        createComponent();
+      });
+
+      it('should render a load-error message instead of the empty state', () => {
+        expect(queryByTestId('exercises-load-error')?.textContent).toContain(
+          'Não foi possível carregar os exercícios',
+        );
+        expect(queryByTestId('exercises-empty')).toBeFalsy();
       });
 
       it('should not render any exercise row', () => {
