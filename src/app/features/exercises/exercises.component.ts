@@ -61,7 +61,16 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
         </button>
       </div>
 
-      @if (exercises().length > 0) {
+      @if (loadError()) {
+        <div
+          data-testid="exercises-load-error"
+          class="rounded-md border border-error/40 bg-error/10 px-6 py-14 text-center"
+        >
+          <p class="text-sm text-error">
+            Não foi possível carregar os exercícios. Tente novamente.
+          </p>
+        </div>
+      } @else if (exercises().length > 0) {
         <div class="flex flex-col gap-2.5">
           @for (exercise of exercises(); track exercise.id; let i = $index) {
             <app-exercise-row
@@ -118,6 +127,7 @@ export class ExercisesComponent {
 
   readonly divisionName = signal('');
   readonly exercises = signal<Exercise[]>([]);
+  readonly loadError = signal(false);
   readonly isFormOpen = signal(false);
   readonly formError = signal('');
   readonly isSubmitting = signal(false);
@@ -223,8 +233,10 @@ export class ExercisesComponent {
   }
 
   private loadExercises(): void {
+    this.loadError.set(false);
     this.exercisesService.getByDivision(this.divisionId).subscribe({
       next: (exercises) => this.exercises.set(exercises),
+      error: () => this.loadError.set(true),
     });
   }
 }
