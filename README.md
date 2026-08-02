@@ -41,16 +41,23 @@ Em resumo: aprender e aplicar disciplina de desenvolvimento em um produto real, 
   usuário recém-registrado (primeiro acesso) vs. "Bem-vindo de volta" nos acessos seguintes
 - CRUD completo de Divisões de Treino no dashboard: listagem em grid, empty state, criação, edição
   (renomear) e exclusão com modal de confirmação avisando sobre a cascata (exercícios/sets)
+- Card de divisão totalmente clicável (mouse e teclado — `Enter`/`Espaço`, com anel de foco visível)
+  navegando para a página de exercícios daquela divisão
+- CRUD completo de Exercícios por divisão: listagem, criação, renomear e exclusão com confirmação de
+  cascata (apaga as séries do exercício), reaproveitando o padrão de modal das divisões; estado de
+  erro dedicado quando o carregamento da lista falha (não confundido com "lista vazia")
 - Modais de formulário e confirmação acessíveis (fecham no `Esc`, foco inicial gerenciado, botões
   desabilitados durante requisições em andamento) — construídos sem dependência de dialog/overlay
 - Endpoint de logout integrado e ação de sair na UI (menu do usuário no header do dashboard)
-- Testes unitários cobrindo o fluxo completo de autenticação (componentes, serviço, guard e interceptors)
-  e o CRUD de divisões (serviço, componentes smart/dumb e modais)
+- Testes unitários cobrindo o fluxo completo de autenticação (componentes, serviço, guard e interceptors),
+  o CRUD de divisões e o CRUD de exercícios (serviço, componentes smart/dumb e modais)
 
 ### Funcionalidades ainda em construção
 
-- Gestão de exercícios e sets (CRUD por divisão/exercício)
+- Gestão de sets por exercício (CRUD)
 - Melhorias de UX, feedback assíncrono e acessibilidade avançada
+- Contagem de séries no card de exercício ("N séries") — aguardando o backend expor o campo
+  (ver `TECH-DEBT.md`)
 
 ## 3. Stack e Versões
 
@@ -101,11 +108,14 @@ src/
 			models/
 				auth.model.ts
 				division.model.ts
+				exercise.model.ts
 			services/
 				auth.service.ts
 				auth.service.spec.ts
 				divisions.service.ts
 				divisions.service.spec.ts
+				exercises.service.ts
+				exercises.service.spec.ts
 		features/
 			auth/
 				login/
@@ -121,6 +131,13 @@ src/
 					division-form/
 				dashboard.component.ts
 				dashboard.component.spec.ts
+				dashboard.component.divisions.spec.ts
+			exercises/
+				components/
+					exercise-form/
+					exercise-row/
+				exercises.component.ts
+				exercises.component.spec.ts
 		shared/
 			ui/
 				confirm-dialog/
@@ -138,6 +155,7 @@ src/
 - `/auth` -> tela de login
 - `/auth/register` -> tela de cadastro
 - `/dashboard` -> área pós-login, protegida por `authGuard`
+- `/dashboard/divisions/:id/exercises` -> exercícios da divisão, protegida por `authGuard`
 
 ### Direção arquitetural alvo
 
@@ -253,14 +271,16 @@ npm run lint
 ### Médio prazo
 
 - [x] CRUD de divisões de treino
-- [ ] CRUD de exercícios por divisão
+- [x] CRUD de exercícios por divisão
 - [ ] CRUD de sets por exercício
 - [x] Feedback assíncrono (loading, sucesso, erro) no fluxo de divisões
+- [x] Feedback assíncrono (loading, sucesso, erro e falha de carregamento) no fluxo de exercícios
 
 ### Próximos passos de arquitetura
 
 - [x] Interceptors funcionais (credenciais + erros)
-- [ ] Padronização de models/DTOs tipados para divisões, exercícios e sets
+- [x] Padronização de models/DTOs tipados para exercícios (`Exercise` vs. `ExerciseDto`, ver
+      Hurdle H4 em `api-contracts.md`) — pendente para divisões e sets
 - [ ] Organização de serviços por domínio (divisões, exercícios, sets)
 - [ ] Evolução da estratégia de estado e cache local
 
