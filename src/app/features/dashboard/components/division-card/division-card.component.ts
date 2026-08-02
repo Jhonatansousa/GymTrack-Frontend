@@ -8,8 +8,13 @@ import { Division } from '../../../../core/models/division.model';
   template: `
     <article
       data-testid="division-card"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Ver exercícios de ' + division().name"
       (click)="open.emit()"
-      class="relative cursor-pointer rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-border-strong"
+      (keydown.enter)="onActivateKey($event)"
+      (keydown.space)="onActivateKey($event)"
+      class="relative cursor-pointer rounded-md border border-border bg-surface p-5 transition-colors duration-150 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div class="absolute right-3 top-3 flex gap-1">
         <button
@@ -77,4 +82,10 @@ export class DivisionCardComponent {
   readonly open = output<void>();
   readonly edit = output<void>();
   readonly remove = output<void>();
+
+  onActivateKey(event: Event): void {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    this.open.emit();
+  }
 }

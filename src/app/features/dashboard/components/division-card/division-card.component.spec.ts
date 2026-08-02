@@ -77,4 +77,60 @@ describe('DivisionCardComponent', () => {
 
     expect(openSpy).not.toHaveBeenCalled();
   });
+
+  describe('keyboard accessibility', () => {
+    function card(): HTMLElement {
+      return queryByTestId('division-card') as HTMLElement;
+    }
+
+    function pressKey(target: HTMLElement, key: string): void {
+      target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      fixture.detectChanges();
+    }
+
+    it('should expose the card as a focusable button to assistive technology', () => {
+      expect(card().getAttribute('role')).toBe('button');
+      expect(card().getAttribute('tabindex')).toBe('0');
+    });
+
+    it('should label the card with the division name', () => {
+      expect(card().getAttribute('aria-label')).toContain('Peito / Tríceps');
+    });
+
+    it('should emit open when Enter is pressed on the card', () => {
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(card(), 'Enter');
+
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('should emit open when Space is pressed on the card', () => {
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(card(), ' ');
+
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('should not emit open when Enter is pressed on the edit button', () => {
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(queryByTestId('division-card-edit') as HTMLElement, 'Enter');
+
+      expect(openSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not emit open when Enter is pressed on the delete button', () => {
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(queryByTestId('division-card-delete') as HTMLElement, 'Enter');
+
+      expect(openSpy).not.toHaveBeenCalled();
+    });
+  });
 });
