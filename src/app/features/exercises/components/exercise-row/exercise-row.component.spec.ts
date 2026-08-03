@@ -65,4 +65,98 @@ describe('ExerciseRowComponent', () => {
 
     expect(removeSpy).toHaveBeenCalled();
   });
+
+  it('should emit open when the row is clicked', () => {
+    createComponent(0);
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('exercise-row') as HTMLElement).click();
+
+    expect(openSpy).toHaveBeenCalled();
+  });
+
+  it('should not emit open when the rename button is clicked', () => {
+    createComponent(0);
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('exercise-row-edit') as HTMLButtonElement).click();
+
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not emit open when the delete button is clicked', () => {
+    createComponent(0);
+    const openSpy = vi.fn();
+    component.open.subscribe(openSpy);
+
+    (queryByTestId('exercise-row-delete') as HTMLButtonElement).click();
+
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  describe('keyboard accessibility', () => {
+    function row(): HTMLElement {
+      return queryByTestId('exercise-row') as HTMLElement;
+    }
+
+    function pressKey(target: HTMLElement, key: string): void {
+      target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      fixture.detectChanges();
+    }
+
+    it('should expose the row as a focusable button to assistive technology', () => {
+      createComponent(0);
+
+      expect(row().getAttribute('role')).toBe('button');
+      expect(row().getAttribute('tabindex')).toBe('0');
+    });
+
+    it('should label the row with the exercise name', () => {
+      createComponent(0);
+
+      expect(row().getAttribute('aria-label')).toContain('Supino Reto');
+    });
+
+    it('should emit open when Enter is pressed on the row', () => {
+      createComponent(0);
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(row(), 'Enter');
+
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('should emit open when Space is pressed on the row', () => {
+      createComponent(0);
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(row(), ' ');
+
+      expect(openSpy).toHaveBeenCalled();
+    });
+
+    it('should not emit open when Enter is pressed on the edit button', () => {
+      createComponent(0);
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(queryByTestId('exercise-row-edit') as HTMLElement, 'Enter');
+
+      expect(openSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not emit open when Enter is pressed on the delete button', () => {
+      createComponent(0);
+      const openSpy = vi.fn();
+      component.open.subscribe(openSpy);
+
+      pressKey(queryByTestId('exercise-row-delete') as HTMLElement, 'Enter');
+
+      expect(openSpy).not.toHaveBeenCalled();
+    });
+  });
 });
