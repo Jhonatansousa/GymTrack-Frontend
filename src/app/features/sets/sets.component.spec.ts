@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -7,7 +8,7 @@ import {
   provideRouter,
 } from '@angular/router';
 import { MockInstance, vi } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { Division } from '../../core/models/division.model';
 import { DivisionsService } from '../../core/services/divisions.service';
@@ -33,6 +34,10 @@ describe('SetsComponent', () => {
 
   function queryByTestId(testId: string): HTMLElement | null {
     return compiled.querySelector(`[data-testid='${testId}']`);
+  }
+
+  function queryAllByTestId(testId: string): HTMLElement[] {
+    return Array.from(compiled.querySelectorAll(`[data-testid='${testId}']`));
   }
 
   function mockNavigationState(state: Record<string, unknown> | undefined): void {
@@ -134,6 +139,82 @@ describe('SetsComponent', () => {
       expect(getByDivisionSpy).toHaveBeenCalledWith(5);
       expect(queryByTestId('sets-heading')?.textContent).toContain('Supino Reto');
       expect(queryByTestId('back-to-exercises-button')?.textContent).toContain('Peito');
+    });
+  });
+
+  describe('sets list', () => {
+    it('should load the sets for the exercise id from the route', () => {
+      mockNavigationState({ divisionName: 'Peito', exerciseName: 'Supino Reto' });
+
+      createComponent();
+
+      expect(getByExerciseSpy).toHaveBeenCalledWith(101);
+    });
+
+    describe('when the exercise has sets', () => {
+      const sets: WorkoutSet[] = [
+        { id: 1001, name: '1', reps: 10, weight: 60, exerciseId: 101 },
+        { id: 1002, name: '2', reps: 8, weight: 70, exerciseId: 101 },
+      ];
+
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito', exerciseName: 'Supino Reto' });
+        getByExerciseSpy.mockReturnValue(of(sets));
+        createComponent();
+      });
+
+      it('should render one card per set with its name', () => {
+        const cards = queryAllByTestId('set-card');
+
+        expect(cards).toHaveLength(2);
+        expect(cards[0].textContent).toContain('1');
+        expect(cards[1].textContent).toContain('2');
+      });
+
+      it('should not render the empty state', () => {
+        expect(queryByTestId('sets-empty')).toBeFalsy();
+      });
+
+      it('should not render the load-error message', () => {
+        expect(queryByTestId('sets-load-error')).toBeFalsy();
+      });
+    });
+
+    describe('when the exercise has no sets', () => {
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito', exerciseName: 'Supino Reto' });
+        getByExerciseSpy.mockReturnValue(of<WorkoutSet[]>([]));
+        createComponent();
+      });
+
+      it('should render the empty state', () => {
+        expect(queryByTestId('sets-empty')?.textContent).toContain(
+          'Nenhuma série cadastrada ainda',
+        );
+      });
+
+      it('should not render any set card', () => {
+        expect(queryAllByTestId('set-card')).toHaveLength(0);
+      });
+    });
+
+    describe('when loading fails', () => {
+      beforeEach(() => {
+        mockNavigationState({ divisionName: 'Peito', exerciseName: 'Supino Reto' });
+        getByExerciseSpy.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+        createComponent();
+      });
+
+      it('should render a load-error message instead of the empty state', () => {
+        expect(queryByTestId('sets-load-error')?.textContent).toContain(
+          'Não foi possível carregar as séries',
+        );
+        expect(queryByTestId('sets-empty')).toBeFalsy();
+      });
+
+      it('should not render any set card', () => {
+        expect(queryAllByTestId('set-card')).toHaveLength(0);
+      });
     });
   });
 });
