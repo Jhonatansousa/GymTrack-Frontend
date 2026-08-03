@@ -53,6 +53,11 @@ describe('SetsComponent', () => {
     fixture.detectChanges();
   }
 
+  function clickByTestId(testId: string): void {
+    (queryByTestId(testId) as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
   beforeEach(() => {
     getByIdSpy = vi.fn(() => of<Division>({ id: 5, name: 'Peito' }));
     getByDivisionSpy = vi.fn(() =>
@@ -215,6 +220,37 @@ describe('SetsComponent', () => {
       it('should not render any set card', () => {
         expect(queryAllByTestId('set-card')).toHaveLength(0);
       });
+    });
+  });
+
+  describe('create set', () => {
+    beforeEach(() => {
+      mockNavigationState({ divisionName: 'Peito', exerciseName: 'Supino Reto' });
+      createComponent();
+    });
+
+    it('should render an "Adicionar Série" button', () => {
+      expect(queryByTestId('add-set-button')?.textContent).toContain('Adicionar Série');
+    });
+
+    it('should create a set for the current exercise with a single click and no form', () => {
+      getByExerciseSpy.mockClear();
+      getByExerciseSpy.mockReturnValueOnce(
+        of([{ id: 1001, name: '1', reps: 0, weight: 0, exerciseId: 101 }]),
+      );
+
+      clickByTestId('add-set-button');
+
+      expect(createSetSpy).toHaveBeenCalledWith(101);
+      expect(getByExerciseSpy).toHaveBeenCalledTimes(1);
+      expect(queryAllByTestId('set-card')).toHaveLength(1);
+    });
+
+    it('should not render any form or dialog when adding a set', () => {
+      clickByTestId('add-set-button');
+
+      expect(queryByTestId('set-form')).toBeFalsy();
+      expect(queryByTestId('confirm-dialog')).toBeFalsy();
     });
   });
 });
