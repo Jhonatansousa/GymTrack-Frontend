@@ -1,12 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { WorkoutSet } from '../../core/models/workout-set.model';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { ExercisesService } from '../../core/services/exercises.service';
 import { SetsService } from '../../core/services/sets.service';
+import { SetCardComponent } from './components/set-card/set-card.component';
 
 @Component({
   selector: 'app-sets',
+  imports: [SetCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -44,6 +47,30 @@ import { SetsService } from '../../core/services/sets.service';
           </h1>
         </div>
       </div>
+
+      @if (loadError()) {
+        <div
+          data-testid="sets-load-error"
+          class="rounded-md border border-error/40 bg-error/10 px-6 py-14 text-center"
+        >
+          <p class="text-sm text-error">Não foi possível carregar as séries. Tente novamente.</p>
+        </div>
+      } @else if (sets().length > 0) {
+        <div class="flex flex-col gap-2.5">
+          @for (set of sets(); track set.id; let i = $index) {
+            <app-set-card [set]="set" [index]="i" />
+          }
+        </div>
+      } @else {
+        <div
+          data-testid="sets-empty"
+          class="rounded-md border border-border bg-surface px-6 py-14 text-center"
+        >
+          <p class="text-sm text-text-muted">
+            Nenhuma série cadastrada ainda. Toque em "Adicionar Série" para começar.
+          </p>
+        </div>
+      }
     </section>
   `,
 })
@@ -56,6 +83,8 @@ export class SetsComponent {
 
   readonly divisionName = signal('');
   readonly exerciseName = signal('');
+  readonly sets = signal<WorkoutSet[]>([]);
+  readonly loadError = signal(false);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('divisionId'));
   private readonly exerciseId = Number(this.route.snapshot.paramMap.get('exerciseId'));
@@ -81,9 +110,19 @@ export class SetsComponent {
         },
       });
     }
+
+    this.loadSets();
   }
 
   onBack(): void {
     void this.router.navigate(['/dashboard/divisions', this.divisionId, 'exercises']);
+  }
+
+  private loadSets(): void {
+    this.loadError.set(false);
+    this.setsService.getByExercise(this.exerciseId).subscribe({
+      next: (sets) => this.sets.set(sets),
+      error: () => this.loadError.set(true),
+    });
   }
 }
