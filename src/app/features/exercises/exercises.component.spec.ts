@@ -68,7 +68,7 @@ describe('ExercisesComponent', () => {
     createExerciseSpy = vi.fn(() => of<Exercise>({ id: 101, name: 'Supino Reto', workoutDivisionId: 5 }));
     updateExerciseSpy = vi.fn(() => of<void>(undefined));
     removeExerciseSpy = vi.fn(() => of<void>(undefined));
-    activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ id: '5' }) } };
+    activatedRouteMock = { snapshot: { paramMap: convertToParamMap({ divisionId: '5' }) } };
 
     TestBed.configureTestingModule({
       imports: [ExercisesComponent],
@@ -125,7 +125,7 @@ describe('ExercisesComponent', () => {
 
     it('should fetch the division name via getById when navigation state is missing', () => {
       mockNavigationState(undefined);
-      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
 
       createComponent();
 
@@ -137,7 +137,7 @@ describe('ExercisesComponent', () => {
   describe('exercises list', () => {
     it('should load the exercises for the division id from the route', () => {
       mockNavigationState({ divisionName: 'Peito' });
-      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
 
       createComponent();
 
@@ -213,10 +213,31 @@ describe('ExercisesComponent', () => {
     });
   });
 
+  describe('open sets', () => {
+    const exercise: Exercise = { id: 101, name: 'Supino Reto', workoutDivisionId: 5 };
+
+    beforeEach(() => {
+      mockNavigationState({ divisionName: 'Peito' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
+      getByDivisionSpy.mockReturnValue(of([exercise]));
+      createComponent();
+    });
+
+    it('should navigate to the sets page when an exercise row is opened', () => {
+      const row = queryByTestId('exercise-row') as HTMLElement;
+      row.click();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['/dashboard/divisions', 5, 'exercises', 101, 'sets'],
+        { state: { divisionName: 'Peito', exerciseName: 'Supino Reto' } },
+      );
+    });
+  });
+
   describe('create exercise', () => {
     beforeEach(() => {
       mockNavigationState({ divisionName: 'Peito' });
-      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
       createComponent();
     });
 
@@ -264,7 +285,7 @@ describe('ExercisesComponent', () => {
 
     beforeEach(() => {
       mockNavigationState({ divisionName: 'Peito' });
-      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
       getByDivisionSpy.mockReturnValue(of([exercise]));
       createComponent();
     });
@@ -311,7 +332,7 @@ describe('ExercisesComponent', () => {
 
     beforeEach(() => {
       mockNavigationState({ divisionName: 'Peito' });
-      activatedRouteMock.snapshot.paramMap = convertToParamMap({ id: '5' });
+      activatedRouteMock.snapshot.paramMap = convertToParamMap({ divisionId: '5' });
       getByDivisionSpy.mockReturnValue(of([exercise]));
       createComponent();
     });

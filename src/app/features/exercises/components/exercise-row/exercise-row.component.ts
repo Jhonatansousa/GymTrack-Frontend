@@ -8,7 +8,13 @@ import { Exercise } from '../../../../core/models/exercise.model';
   template: `
     <div
       data-testid="exercise-row"
-      class="flex items-center justify-between gap-4 rounded-md border border-border bg-surface px-4.5 py-4"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Ver séries de ' + exercise().name"
+      (click)="open.emit()"
+      (keydown.enter)="onActivateKey($event)"
+      (keydown.space)="onActivateKey($event)"
+      class="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-border bg-surface px-4.5 py-4 transition-colors duration-150 hover:border-border-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       <div class="flex min-w-0 flex-1 items-center gap-4">
         <span data-testid="exercise-row-index" class="w-6 shrink-0 font-mono text-xs text-text-faint">
@@ -22,7 +28,7 @@ import { Exercise } from '../../../../core/models/exercise.model';
           type="button"
           data-testid="exercise-row-edit"
           aria-label="Renomear exercício"
-          (click)="edit.emit()"
+          (click)="edit.emit(); $event.stopPropagation()"
           class="flex h-8 w-8 items-center justify-center rounded text-text-faint transition-colors duration-150 hover:bg-surface-raised hover:text-text"
         >
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -38,7 +44,7 @@ import { Exercise } from '../../../../core/models/exercise.model';
           type="button"
           data-testid="exercise-row-delete"
           aria-label="Excluir exercício"
-          (click)="remove.emit()"
+          (click)="remove.emit(); $event.stopPropagation()"
           class="flex h-8 w-8 items-center justify-center rounded text-text-faint transition-colors duration-150 hover:bg-error/15 hover:text-error"
         >
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -59,8 +65,15 @@ export class ExerciseRowComponent {
   readonly exercise = input.required<Exercise>();
   readonly index = input.required<number>();
 
+  readonly open = output<void>();
   readonly edit = output<void>();
   readonly remove = output<void>();
 
   readonly indexLabel = computed(() => String(this.index() + 1).padStart(2, '0'));
+
+  onActivateKey(event: Event): void {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    this.open.emit();
+  }
 }

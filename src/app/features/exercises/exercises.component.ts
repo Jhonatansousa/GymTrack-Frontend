@@ -76,6 +76,7 @@ import { ExerciseRowComponent } from './components/exercise-row/exercise-row.com
             <app-exercise-row
               [exercise]="exercise"
               [index]="i"
+              (open)="openSets(exercise)"
               (edit)="openEditForm(exercise)"
               (remove)="askDeleteExercise(exercise)"
             />
@@ -157,6 +158,13 @@ export class ExercisesComponent {
 
   onBack(): void {
     void this.router.navigate(['/dashboard']);
+  }
+
+  openSets(exercise: Exercise): void {
+    void this.router.navigate(
+      ['/dashboard/divisions', this.divisionId, 'exercises', exercise.id, 'sets'],
+      { state: { divisionName: this.divisionName(), exerciseName: exercise.name } },
+    );
   }
 
   openForm(): void {
