@@ -135,7 +135,7 @@ export class ExercisesComponent {
   readonly exerciseToDelete = signal<Exercise | null>(null);
   readonly isDeleting = signal(false);
 
-  private readonly divisionId = Number(this.route.snapshot.paramMap.get('id'));
+  private readonly divisionId = Number(this.route.snapshot.paramMap.get('divisionId'));
 
   constructor() {
     // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while

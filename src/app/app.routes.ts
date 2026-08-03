@@ -33,7 +33,7 @@ export const routes: Routes = [
             ),
     },
     {
-        path: 'dashboard/divisions/:id/exercises',
+        path: 'dashboard/divisions/:divisionId/exercises',
         canActivate: [authGuard],
         loadComponent: () =>
             import('./features/exercises/exercises.component').then(
