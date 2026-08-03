@@ -69,6 +69,52 @@
 ## D. Sets (`/sets`)
 
 - **Relationship:** belong to an exercise (`exerciseId`).
-- **Fields:** `name` (string), `reps` (int), `weight` (double/long).
-- **Auto-naming rule:** if `name` is empty or null, the backend auto-generates an incremental string
-  ("1", "2", ...). The frontend form **must keep `name` optional** to leverage this backend logic.
+- **Fields:** `name` (string), `reps` (int), `weight` (double).
+- **`POST /sets`** — body `{ exerciseId, name?, reps?, weight? }`. 201 on success. `name` is
+  optional (see auto-naming rule below); omitted `reps`/`weight` default to `0`/`0.0` server-side.
+  Response is `{ status, results: SetDto }`.
+- **`GET /sets/{exerciseId}`** — lists sets for an exercise, ordered by id ascending. **Path
+  param, not query string** (same pattern as `GET /exercises/{divisionId}`). Response is
+  `{ status, results: SetDto[] }`.
+- **`PATCH /sets/{exerciseSetId}`** — body `{ newName?, reps?, weight? }`, **all fields optional
+  and independently nullable.** The backend only overwrites a field when it is non-null in the
+  request — sending `{ reps, weight }` leaves the name untouched, and sending `{ newName }` alone
+  leaves the numbers untouched. This is a **partial update**, unlike divisions/exercises PATCH
+  which always require the renamed field. Response is `{ status }`, **no `results`** — same as
+  exercises, `SetsService.update()` returns `Observable<void>`.
+- **`DELETE /sets/{exerciseSetId}`** — 200 on success, `{ status }`, no `results`.
+- **Auto-naming rule:** if `name` is empty or null on `POST`, the backend counts existing sets for
+  the exercise and auto-generates the next incremental string ("1", "2", ...). The frontend "add
+  set" action **must send no `name` field at all** (just `{ exerciseId }`) to leverage this — no
+  create form is needed for sets.
+- **No cascade on delete.** Unlike divisions/exercises, a set has no children — deleting one does
+  not warn about cascading deletes, just a plain confirmation.
+
+### Hurdle H6 — Sets use a *third* name for the same field, and PATCH is partial
+
+- **Problem:** the "name" field for a set has **three different keys** depending on the verb:
+  `POST /sets` accepts `name`, the response DTO (`SetDto`) returns it as `setName`, and
+  `PATCH /sets/{id}` expects `newName`. This is the same shape of problem as Hurdle H4
+  (exercises), but with three names instead of two — inspecting the real backend source
+  (`ExerciseSetResponseDTO`, `ExerciseSetDTO`, `ExerciseSetUpdateDTO` in the Spring Boot repo) was
+  what confirmed this, since none of it is documented anywhere else. The response DTO also uses
+  `exerciseSetId`, not `id` — same convention break as `exerciseId` on `ExerciseDto`.
+- **Second trap — partial PATCH:** `ExerciseSetServiceImpl.updateExerciseSet()` only assigns a
+  field on the entity when the corresponding DTO field is non-null. A naive `SetsService.update()`
+  that always sends all three fields (`{ newName, reps, weight }`) would work, but a component
+  that wants to change *only* the weight (e.g. a debounced stepper) should send `{ weight }`
+  alone — sending `{ newName: undefined, reps: undefined, weight }` serializes fine over
+  `HttpClient` (Angular drops `undefined` keys from the JSON body), so build the update payload as
+  a partial object, not a fully-populated one with placeholder values.
+- **Correct pattern:** `workout-set.model.ts` declares `WorkoutSet` (`{ id, name, reps, weight,
+  exerciseId }`, the clean shape) and `WorkoutSetDto` (`{ exerciseSetId, setName, reps, weight,
+  exerciseId }`, the literal backend shape), plus a separate `WorkoutSetUpdate` type
+  (`{ newName?, reps?, weight? }`) for the PATCH body — this type is intentionally **not** derived
+  from `WorkoutSet` because the key names diverge (`newName`, not `name`). `SetsService` maps
+  `WorkoutSetDto → WorkoutSet` via a private `toWorkoutSet()` function; no component, template, or
+  spec outside `sets.service.ts`/`.spec.ts` ever sees `exerciseSetId`/`setName`/`newName`.
+- **Note on the model name:** the domain type is called `WorkoutSet`, not `Set` — `Set` is a
+  built-in JavaScript/TypeScript type (`new Set([1, 2, 3])`) and shadowing it silently breaks any
+  code in the same file that expects the real one.
+- **Applies to:** any future PATCH endpoint on this backend — check whether it's a partial update
+  (only provided fields change) or a full replace before assuming either.
