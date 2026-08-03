@@ -41,6 +41,14 @@ export const routes: Routes = [
             ),
     },
     {
+        path: 'dashboard/divisions/:divisionId/exercises/:exerciseId/sets',
+        canActivate: [authGuard],
+        loadComponent: () =>
+            import('./features/sets/sets.component').then(
+                (m) => m.SetsComponent
+            ),
+    },
+    {
         path: '**',
         loadComponent: () =>
             import('./shared/not-found/not-found.component').then(
