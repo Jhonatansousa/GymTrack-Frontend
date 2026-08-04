@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { WorkoutSet } from '../../../../core/models/workout-set.model';
 import { SetCardComponent } from './set-card.component';
@@ -41,5 +42,16 @@ describe('SetCardComponent', () => {
     createComponent(2);
 
     expect(queryByTestId('set-card-index')?.textContent?.trim()).toBe('03');
+  });
+
+  it('should emit remove when the delete button is clicked', () => {
+    createComponent(0);
+    const component = fixture.componentInstance;
+    const removeSpy = vi.fn();
+    component.remove.subscribe(removeSpy);
+
+    (queryByTestId('set-card-delete') as HTMLButtonElement).click();
+
+    expect(removeSpy).toHaveBeenCalled();
   });
 });
