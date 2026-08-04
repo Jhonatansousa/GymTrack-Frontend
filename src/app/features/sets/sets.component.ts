@@ -46,6 +46,18 @@ import { SetCardComponent } from './components/set-card/set-card.component';
             {{ exerciseName() }}
           </h1>
         </div>
+        <button
+          type="button"
+          data-testid="add-set-button"
+          [disabled]="isCreating()"
+          (click)="onAddSet()"
+          class="inline-flex items-center gap-2 rounded bg-accent px-4 py-2.5 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-dim disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          Adicionar Série
+        </button>
       </div>
 
       @if (loadError()) {
@@ -85,6 +97,7 @@ export class SetsComponent {
   readonly exerciseName = signal('');
   readonly sets = signal<WorkoutSet[]>([]);
   readonly loadError = signal(false);
+  readonly isCreating = signal(false);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('divisionId'));
   private readonly exerciseId = Number(this.route.snapshot.paramMap.get('exerciseId'));
@@ -116,6 +129,19 @@ export class SetsComponent {
 
   onBack(): void {
     void this.router.navigate(['/dashboard/divisions', this.divisionId, 'exercises']);
+  }
+
+  onAddSet(): void {
+    if (this.isCreating()) return;
+
+    this.isCreating.set(true);
+    this.setsService.create(this.exerciseId).subscribe({
+      next: () => {
+        this.isCreating.set(false);
+        this.loadSets();
+      },
+      error: () => this.isCreating.set(false),
+    });
   }
 
   private loadSets(): void {
