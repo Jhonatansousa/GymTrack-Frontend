@@ -71,7 +71,12 @@ import { SetCardComponent } from './components/set-card/set-card.component';
       } @else if (sets().length > 0) {
         <div class="flex flex-col gap-2.5">
           @for (set of sets(); track set.id; let i = $index) {
-            <app-set-card [set]="set" [index]="i" (remove)="askDeleteSet(set)" />
+            <app-set-card
+              [set]="set"
+              [index]="i"
+              (rename)="onRenameSet(set, $event)"
+              (remove)="askDeleteSet(set)"
+            />
           }
         </div>
       } @else {
@@ -155,6 +160,12 @@ export class SetsComponent {
         this.loadSets();
       },
       error: () => this.isCreating.set(false),
+    });
+  }
+
+  onRenameSet(set: WorkoutSet, newName: string): void {
+    this.setsService.update(set.id, { newName }).subscribe({
+      next: () => this.loadSets(),
     });
   }
 
