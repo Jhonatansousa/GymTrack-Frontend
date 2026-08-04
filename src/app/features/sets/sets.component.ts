@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, debounceTime, groupBy, mergeMap } from 'rxjs';
 
 import { WorkoutSet } from '../../core/models/workout-set.model';
 import { DivisionsService } from '../../core/services/divisions.service';
@@ -7,10 +9,11 @@ import { ExercisesService } from '../../core/services/exercises.service';
 import { SetsService } from '../../core/services/sets.service';
 import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { SetCardComponent } from './components/set-card/set-card.component';
+import { WeightIncrementSelectorComponent } from './components/weight-increment-selector/weight-increment-selector.component';
 
 @Component({
   selector: 'app-sets',
-  imports: [ConfirmDialogComponent, SetCardComponent],
+  imports: [ConfirmDialogComponent, SetCardComponent, WeightIncrementSelectorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -61,6 +64,16 @@ import { SetCardComponent } from './components/set-card/set-card.component';
         </button>
       </div>
 
+      <div class="flex items-center gap-2.5">
+        <span class="font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-text-faint">
+          Incremento da carga
+        </span>
+        <app-weight-increment-selector
+          [active]="weightIncrement()"
+          (selected)="onWeightIncrementSelected($event)"
+        />
+      </div>
+
       @if (loadError()) {
         <div
           data-testid="sets-load-error"
@@ -74,8 +87,11 @@ import { SetCardComponent } from './components/set-card/set-card.component';
             <app-set-card
               [set]="set"
               [index]="i"
+              [weightIncrement]="weightIncrement()"
               (rename)="onRenameSet(set, $event)"
               (remove)="askDeleteSet(set)"
+              (weightChange)="onWeightChange(set, $event)"
+              (repsChange)="onRepsChange(set, $event)"
             />
           }
         </div>
@@ -117,11 +133,22 @@ export class SetsComponent {
   readonly isCreating = signal(false);
   readonly setToDelete = signal<WorkoutSet | null>(null);
   readonly isDeleting = signal(false);
+  readonly weightIncrement = signal(2.5);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('divisionId'));
   private readonly exerciseId = Number(this.route.snapshot.paramMap.get('exerciseId'));
+  private readonly pendingUpdate = new Subject<number>();
 
   constructor() {
+    // One debounce timer per set id (groupBy), so editing set A never resets set B's timer.
+    this.pendingUpdate
+      .pipe(
+        groupBy((setId) => setId),
+        mergeMap((group) => group.pipe(debounceTime(500))),
+        takeUntilDestroyed(),
+      )
+      .subscribe((setId) => this.persistSet(setId));
+
     // Read eagerly: getCurrentNavigation() only returns the in-flight navigation while
     // this component is being activated by the router, not after activation completes.
     const state = this.router.getCurrentNavigation()?.extras.state as
@@ -169,6 +196,20 @@ export class SetsComponent {
     });
   }
 
+  onWeightIncrementSelected(value: number): void {
+    this.weightIncrement.set(value);
+  }
+
+  onWeightChange(set: WorkoutSet, weight: number): void {
+    this.patchSetLocally(set.id, { weight });
+    this.pendingUpdate.next(set.id);
+  }
+
+  onRepsChange(set: WorkoutSet, reps: number): void {
+    this.patchSetLocally(set.id, { reps });
+    this.pendingUpdate.next(set.id);
+  }
+
   askDeleteSet(set: WorkoutSet): void {
     this.setToDelete.set(set);
   }
@@ -198,5 +239,18 @@ export class SetsComponent {
       next: (sets) => this.sets.set(sets),
       error: () => this.loadError.set(true),
     });
+  }
+
+  private patchSetLocally(setId: number, changes: Partial<Pick<WorkoutSet, 'reps' | 'weight'>>): void {
+    this.sets.update((sets) => sets.map((s) => (s.id === setId ? { ...s, ...changes } : s)));
+  }
+
+  private persistSet(setId: number): void {
+    const set = this.sets().find((s) => s.id === setId);
+    if (!set) return;
+
+    this.setsService
+      .update(setId, { reps: set.reps, weight: set.weight })
+      .subscribe({ error: () => this.loadSets() });
   }
 }
