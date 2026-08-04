@@ -122,4 +122,26 @@ describe('SetsComponent — editing', () => {
       expect(queryByTestId('confirm-dialog')).toBeFalsy();
     });
   });
+
+  describe('rename set', () => {
+    it('should update the set name and reload the list when the card emits rename', () => {
+      getByExerciseSpy.mockClear();
+      getByExerciseSpy.mockReturnValueOnce(
+        of<WorkoutSet[]>([{ ...set, name: 'Aquecimento' }]),
+      );
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      const input = queryByTestId('set-card-name-input') as HTMLInputElement;
+      input.value = 'Aquecimento';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(updateSetSpy).toHaveBeenCalledWith(1001, { newName: 'Aquecimento' });
+      expect(getByExerciseSpy).toHaveBeenCalledTimes(1);
+      expect(queryAllByTestId('set-card')[0].textContent).toContain('Aquecimento');
+    });
+  });
 });
