@@ -12,7 +12,7 @@ const WEIGHT_INCREMENT_OPTIONS = [0.5, 1, 2.5, 5] as const;
           type="button"
           data-testid="weight-increment-option"
           [attr.aria-pressed]="option === active()"
-          (click)="select.emit(option)"
+          (click)="selected.emit(option)"
           class="rounded border px-3 py-1.5 font-mono text-xs font-semibold transition-colors duration-150"
           [class.bg-accent]="option === active()"
           [class.text-on-accent]="option === active()"
@@ -29,7 +29,7 @@ const WEIGHT_INCREMENT_OPTIONS = [0.5, 1, 2.5, 5] as const;
 })
 export class WeightIncrementSelectorComponent {
   readonly active = input.required<number>();
-  readonly select = output<number>();
+  readonly selected = output<number>();
 
   readonly options = WEIGHT_INCREMENT_OPTIONS;
 }

@@ -56,10 +56,10 @@ describe('WeightIncrementSelectorComponent', () => {
     ]);
   });
 
-  it('should emit select with the corresponding value when a chip is clicked', () => {
+  it('should emit selected with the corresponding value when a chip is clicked', () => {
     createComponent(2.5);
     const spy = vi.fn();
-    component.select.subscribe(spy);
+    component.selected.subscribe(spy);
 
     queryAllChips()[1].click();
 

@@ -10,12 +10,17 @@ describe('SetCardComponent', () => {
 
   const set: WorkoutSet = { id: 1001, name: '1', reps: 10, weight: 60, exerciseId: 101 };
 
-  function createComponent(index: number): void {
+  function createComponent(index: number, weightIncrement = 2.5): void {
     fixture = TestBed.createComponent(SetCardComponent);
     fixture.componentRef.setInput('set', set);
     fixture.componentRef.setInput('index', index);
+    fixture.componentRef.setInput('weightIncrement', weightIncrement);
     compiled = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
+  }
+
+  function stepperIncrementButtons(): HTMLButtonElement[] {
+    return Array.from(compiled.querySelectorAll("[data-testid='stepper-field-increment']"));
   }
 
   function queryByTestId(testId: string): HTMLElement | null {
@@ -145,6 +150,39 @@ describe('SetCardComponent', () => {
       pressKey('Enter');
 
       expect(renameSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('weight and reps steppers', () => {
+    it('should render a "Carga (kg)" stepper and a "Repetições" stepper', () => {
+      createComponent(0);
+
+      const fields = Array.from(compiled.querySelectorAll("[data-testid='stepper-field']"));
+      expect(fields).toHaveLength(2);
+      expect(fields[0].textContent).toContain('Carga (kg)');
+      expect(fields[1].textContent).toContain('Repetições');
+    });
+
+    it('should emit weightChange using the weightIncrement input as the step', () => {
+      createComponent(0, 5);
+      const component = fixture.componentInstance;
+      const spy = vi.fn();
+      component.weightChange.subscribe(spy);
+
+      stepperIncrementButtons()[0].click();
+
+      expect(spy).toHaveBeenCalledWith(65);
+    });
+
+    it('should emit repsChange using a fixed step of 1 regardless of weightIncrement', () => {
+      createComponent(0, 5);
+      const component = fixture.componentInstance;
+      const spy = vi.fn();
+      component.repsChange.subscribe(spy);
+
+      stepperIncrementButtons()[1].click();
+
+      expect(spy).toHaveBeenCalledWith(11);
     });
   });
 });
