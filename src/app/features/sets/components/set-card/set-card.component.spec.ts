@@ -54,4 +54,97 @@ describe('SetCardComponent', () => {
 
     expect(removeSpy).toHaveBeenCalled();
   });
+
+  describe('inline rename', () => {
+    function nameInput(): HTMLInputElement {
+      return queryByTestId('set-card-name-input') as HTMLInputElement;
+    }
+
+    function setInputValue(value: string): void {
+      const input = nameInput();
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    function pressKey(key: string): void {
+      nameInput().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      fixture.detectChanges();
+    }
+
+    it('should not show the name input by default', () => {
+      createComponent(0);
+
+      expect(queryByTestId('set-card-name-input')).toBeFalsy();
+    });
+
+    it('should show the name input, prefilled with the current name, when the rename button is clicked', () => {
+      createComponent(0);
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(nameInput()).toBeTruthy();
+      expect(nameInput().value).toBe('1');
+    });
+
+    it('should emit rename with the trimmed value and leave rename mode on Enter', () => {
+      createComponent(0);
+      const component = fixture.componentInstance;
+      const renameSpy = vi.fn();
+      component.rename.subscribe(renameSpy);
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      setInputValue('  Aquecimento  ');
+      pressKey('Enter');
+
+      expect(renameSpy).toHaveBeenCalledWith('Aquecimento');
+      expect(queryByTestId('set-card-name-input')).toBeFalsy();
+    });
+
+    it('should leave rename mode without emitting rename on Escape', () => {
+      createComponent(0);
+      const component = fixture.componentInstance;
+      const renameSpy = vi.fn();
+      component.rename.subscribe(renameSpy);
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      setInputValue('Aquecimento');
+      pressKey('Escape');
+
+      expect(renameSpy).not.toHaveBeenCalled();
+      expect(queryByTestId('set-card-name-input')).toBeFalsy();
+    });
+
+    it('should emit rename on blur', () => {
+      createComponent(0);
+      const component = fixture.componentInstance;
+      const renameSpy = vi.fn();
+      component.rename.subscribe(renameSpy);
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      setInputValue('Aquecimento');
+      nameInput().dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+
+      expect(renameSpy).toHaveBeenCalledWith('Aquecimento');
+    });
+
+    it('should not emit rename when the name is empty or only whitespace', () => {
+      createComponent(0);
+      const component = fixture.componentInstance;
+      const renameSpy = vi.fn();
+      component.rename.subscribe(renameSpy);
+
+      (queryByTestId('set-card-edit') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      setInputValue('   ');
+      pressKey('Enter');
+
+      expect(renameSpy).not.toHaveBeenCalled();
+    });
+  });
 });
