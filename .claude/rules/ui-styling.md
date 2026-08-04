@@ -60,6 +60,43 @@ future modal (exercises, sets) instead of reaching for a dialog library:
   the handler itself too (`if (this.isSubmitting()) return;`), since a disabled button doesn't stop a
   form's Enter-key submission.
 
+## Rule — `output()` names must not collide with native DOM events
+
+`@angular-eslint/no-output-native` fails the lint on any output whose name matches a native DOM
+event. This bites more often than it looks, because the natural domain word is frequently also an
+event name. Known collisions hit in this repo so far:
+
+| ❌ Natural name | ✅ Use instead | Native event it collides with |
+|---|---|---|
+| `cancel` | `cancelled` | `<dialog>` cancel |
+| `select` | `selected` | text-selection `select` |
+
+Others to watch for: `change`, `input`, `close`, `toggle`, `submit`, `reset`, `copy`, `paste`,
+`drag`, `error`, `load`. **The lint is the safety net, not the design step** — pick the non-colliding
+name when writing the component, so you don't have to rename the output plus every template binding
+plus every spec assertion afterwards.
+
+## Pattern — Inline editing (edit in place, no modal)
+
+Used by the sets feature (`SetCardComponent` for the name, `StepperFieldComponent` for weight/reps).
+Prefer it over a modal when the value is small, the edit is frequent, and the surrounding context
+matters — a modal for "change 60 to 62.5" is heavier than the edit itself.
+
+- **State is local to the dumb component:** an `isEditing` signal plus a `draft` signal holding the
+  in-progress text. The parent only hears the final value via an `output()`; it never knows the
+  component is mid-edit.
+- **Toggle in the template with `@if (isEditing()) { <input> } @else { <button> }`.** The read mode
+  must be a `<button>`, not a `<p>` — clicking the value to edit it is an action, and a `<button>` is
+  keyboard-reachable and screen-reader-announced for free.
+- **Three exits, all required:** `(keydown.enter)` commits, `(keydown.escape)` cancels without
+  emitting, `(blur)` commits. Skipping `blur` strands the user in edit mode when they click away.
+- **Focus the input when it appears:** `viewChild<ElementRef<HTMLInputElement>>('...')` + a
+  constructor `effect()` calling `.focus()`. Same mechanism as the modals' initial focus.
+- **Guard the commit:** re-check `if (!this.isEditing()) return;` inside the commit handler, because
+  `Enter` fires `keydown` *and* then `blur` — without the guard the value is emitted twice.
+- **Validate at the boundary:** reject empty/whitespace names (keep the old value), and coerce
+  invalid or negative numbers to a safe default rather than emitting `NaN`.
+
 ## Language & i18n — "Code speaks English. Users read Portuguese."
 
 The app targets Brazilian users. **All user-facing strings are in Portuguese; all code is in English.**
