@@ -1,7 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Navigation, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { Division } from '../../core/models/division.model';
 import { DivisionsService } from '../../core/services/divisions.service';
@@ -142,6 +143,96 @@ describe('SetsComponent — editing', () => {
       expect(updateSetSpy).toHaveBeenCalledWith(1001, { newName: 'Aquecimento' });
       expect(getByExerciseSpy).toHaveBeenCalledTimes(1);
       expect(queryAllByTestId('set-card')[0].textContent).toContain('Aquecimento');
+    });
+  });
+
+  describe('update set fields (weight & reps)', () => {
+    const setA: WorkoutSet = { id: 1001, name: '1', reps: 10, weight: 60, exerciseId: 101 };
+    const setB: WorkoutSet = { id: 1002, name: '2', reps: 8, weight: 70, exerciseId: 101 };
+
+    function stepperIncrementButtons(): HTMLButtonElement[] {
+      return Array.from(compiled.querySelectorAll("[data-testid='stepper-field-increment']"));
+    }
+
+    function clickAndDetect(button: HTMLButtonElement): void {
+      button.click();
+      fixture.detectChanges();
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      getByExerciseSpy.mockReturnValue(of([setA, setB]));
+      createComponent();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should update the value on screen immediately, before any HTTP call', () => {
+      clickAndDetect(stepperIncrementButtons()[0]);
+
+      expect(queryAllByTestId('stepper-field-value')[0].textContent?.trim()).toBe('62.5');
+      expect(updateSetSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not call update immediately after the change', () => {
+      clickAndDetect(stepperIncrementButtons()[0]);
+
+      expect(updateSetSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call update once, 500ms after the last change', () => {
+      clickAndDetect(stepperIncrementButtons()[0]);
+
+      vi.advanceTimersByTime(500);
+
+      expect(updateSetSpy).toHaveBeenCalledTimes(1);
+      expect(updateSetSpy).toHaveBeenCalledWith(1001, { reps: 10, weight: 62.5 });
+    });
+
+    it('should coalesce five rapid clicks into a single request with the final value', () => {
+      const incrementButton = stepperIncrementButtons()[0];
+      for (let i = 0; i < 5; i++) {
+        clickAndDetect(incrementButton);
+      }
+
+      vi.advanceTimersByTime(500);
+
+      expect(updateSetSpy).toHaveBeenCalledTimes(1);
+      expect(updateSetSpy).toHaveBeenCalledWith(1001, { reps: 10, weight: 72.5 });
+    });
+
+    it('should send independent requests for changes on different sets', () => {
+      clickAndDetect(stepperIncrementButtons()[0]);
+      clickAndDetect(stepperIncrementButtons()[2]);
+
+      vi.advanceTimersByTime(500);
+
+      expect(updateSetSpy).toHaveBeenCalledTimes(2);
+      expect(updateSetSpy).toHaveBeenCalledWith(1001, { reps: 10, weight: 62.5 });
+      expect(updateSetSpy).toHaveBeenCalledWith(1002, { reps: 8, weight: 72.5 });
+    });
+
+    it('should reload the list to resync when the persist request fails', () => {
+      updateSetSpy.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })));
+      getByExerciseSpy.mockClear();
+      getByExerciseSpy.mockReturnValueOnce(of([setA, setB]));
+
+      clickAndDetect(stepperIncrementButtons()[0]);
+      vi.advanceTimersByTime(500);
+
+      expect(getByExerciseSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use the selected weight increment as the step for the next weight change', () => {
+      const chips = queryAllByTestId('weight-increment-option');
+      clickAndDetect(chips[3] as HTMLButtonElement);
+
+      clickAndDetect(stepperIncrementButtons()[0]);
+      vi.advanceTimersByTime(500);
+
+      expect(updateSetSpy).toHaveBeenCalledWith(1001, { reps: 10, weight: 65 });
     });
   });
 });
