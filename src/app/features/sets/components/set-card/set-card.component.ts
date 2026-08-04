@@ -11,9 +11,11 @@ import {
 } from '@angular/core';
 
 import { WorkoutSet } from '../../../../core/models/workout-set.model';
+import { StepperFieldComponent } from '../stepper-field/stepper-field.component';
 
 @Component({
   selector: 'app-set-card',
+  imports: [StepperFieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div data-testid="set-card" class="rounded-md border border-border bg-surface p-3.5">
@@ -76,15 +78,34 @@ import { WorkoutSet } from '../../../../core/models/workout-set.model';
           </button>
         </div>
       </div>
+
+      <div class="mt-3.5 grid grid-cols-2 gap-2.5">
+        <app-stepper-field
+          label="Carga (kg)"
+          [value]="set().weight"
+          [step]="weightIncrement()"
+          [allowDecimals]="true"
+          (valueChange)="weightChange.emit($event)"
+        />
+        <app-stepper-field
+          label="Repetições"
+          [value]="set().reps"
+          [step]="1"
+          (valueChange)="repsChange.emit($event)"
+        />
+      </div>
     </div>
   `,
 })
 export class SetCardComponent {
   readonly set = input.required<WorkoutSet>();
   readonly index = input.required<number>();
+  readonly weightIncrement = input.required<number>();
 
   readonly remove = output<void>();
   readonly rename = output<string>();
+  readonly weightChange = output<number>();
+  readonly repsChange = output<number>();
 
   readonly indexLabel = computed(() => String(this.index() + 1).padStart(2, '0'));
 
