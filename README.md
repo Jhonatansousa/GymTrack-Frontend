@@ -46,18 +46,30 @@ Em resumo: aprender e aplicar disciplina de desenvolvimento em um produto real, 
 - CRUD completo de Exercícios por divisão: listagem, criação, renomear e exclusão com confirmação de
   cascata (apaga as séries do exercício), reaproveitando o padrão de modal das divisões; estado de
   erro dedicado quando o carregamento da lista falha (não confundido com "lista vazia")
+- Linha de exercício totalmente clicável (mouse e teclado — `Enter`/`Espaço`, com anel de foco
+  visível) navegando para a página de séries daquele exercício
+- CRUD completo de Séries por exercício: listagem, empty state, estado de erro de carregamento,
+  criação **sem formulário** (um clique cria a série e o backend a auto-nomeia "1", "2", ...),
+  renomear **inline** no próprio card (`Enter` salva, `Esc` cancela, blur salva) e exclusão com
+  diálogo de confirmação
+- Edição de carga (kg) e repetições por série com botões `−` / `+` ou digitando direto no valor;
+  o incremento da carga é selecionável (`0.5`, `1`, `2.5`, `5`) e as repetições variam de 1 em 1
+- Persistência otimista das séries: a tela atualiza na hora e o `PATCH` sai com _debounce_ de 500ms
+  por série — cliques rápidos sucessivos viram **uma** requisição; falha recarrega a lista para
+  ressincronizar
 - Modais de formulário e confirmação acessíveis (fecham no `Esc`, foco inicial gerenciado, botões
   desabilitados durante requisições em andamento) — construídos sem dependência de dialog/overlay
 - Endpoint de logout integrado e ação de sair na UI (menu do usuário no header do dashboard)
 - Testes unitários cobrindo o fluxo completo de autenticação (componentes, serviço, guard e interceptors),
-  o CRUD de divisões e o CRUD de exercícios (serviço, componentes smart/dumb e modais)
+  o CRUD de divisões, o CRUD de exercícios e o CRUD de séries (serviço, componentes smart/dumb,
+  modais e a persistência com debounce via fake timers)
 
 ### Funcionalidades ainda em construção
 
-- Gestão de sets por exercício (CRUD)
 - Melhorias de UX, feedback assíncrono e acessibilidade avançada
 - Contagem de séries no card de exercício ("N séries") — aguardando o backend expor o campo
   (ver `TECH-DEBT.md`)
+- "Segurar para repetir" (press-and-hold) nos botões `−` / `+` das séries (ver `TECH-DEBT.md`)
 
 ## 3. Stack e Versões
 
@@ -109,6 +121,7 @@ src/
 				auth.model.ts
 				division.model.ts
 				exercise.model.ts
+				workout-set.model.ts
 			services/
 				auth.service.ts
 				auth.service.spec.ts
@@ -116,6 +129,8 @@ src/
 				divisions.service.spec.ts
 				exercises.service.ts
 				exercises.service.spec.ts
+				sets.service.ts
+				sets.service.spec.ts
 		features/
 			auth/
 				login/
@@ -138,6 +153,15 @@ src/
 					exercise-row/
 				exercises.component.ts
 				exercises.component.spec.ts
+			sets/
+				components/
+					set-card/
+					sets-header/
+					stepper-field/
+					weight-increment-selector/
+				sets.component.ts
+				sets.component.spec.ts
+				sets.component.editing.spec.ts
 		shared/
 			ui/
 				confirm-dialog/
@@ -155,7 +179,9 @@ src/
 - `/auth` -> tela de login
 - `/auth/register` -> tela de cadastro
 - `/dashboard` -> área pós-login, protegida por `authGuard`
-- `/dashboard/divisions/:id/exercises` -> exercícios da divisão, protegida por `authGuard`
+- `/dashboard/divisions/:divisionId/exercises` -> exercícios da divisão, protegida por `authGuard`
+- `/dashboard/divisions/:divisionId/exercises/:exerciseId/sets` -> séries do exercício, protegida
+  por `authGuard`
 
 ### Direção arquitetural alvo
 
@@ -272,15 +298,18 @@ npm run lint
 
 - [x] CRUD de divisões de treino
 - [x] CRUD de exercícios por divisão
-- [ ] CRUD de sets por exercício
+- [x] CRUD de sets por exercício
 - [x] Feedback assíncrono (loading, sucesso, erro) no fluxo de divisões
 - [x] Feedback assíncrono (loading, sucesso, erro e falha de carregamento) no fluxo de exercícios
+- [x] Feedback assíncrono (loading, erro e falha de carregamento) no fluxo de séries, com
+      atualização otimista e persistência com debounce
 
 ### Próximos passos de arquitetura
 
 - [x] Interceptors funcionais (credenciais + erros)
 - [x] Padronização de models/DTOs tipados para exercícios (`Exercise` vs. `ExerciseDto`, ver
-      Hurdle H4 em `api-contracts.md`) — pendente para divisões e sets
+      Hurdle H4 em `api-contracts.md`) e para séries (`WorkoutSet` vs. `WorkoutSetDto`, ver
+      Hurdle H6) — pendente apenas para divisões
 - [ ] Organização de serviços por domínio (divisões, exercícios, sets)
 - [ ] Evolução da estratégia de estado e cache local
 

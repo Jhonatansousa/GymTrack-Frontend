@@ -113,3 +113,47 @@
   });
   ```
 - **Applies to** any provider needing per-test variation: `ActivatedRoute`, feature flags, config tokens.
+## Pattern — Testing RxJS time operators (`debounceTime`, `delay`, ...) with fake timers
+
+`SetsComponent` persists weight/reps changes through a `debounceTime(500)` pipe. Testing that
+without waiting 500ms of real time works out of the box:
+
+```ts
+beforeEach(() => {
+  vi.useFakeTimers();
+  createComponent();          // create AFTER installing fake timers
+});
+
+afterEach(() => {
+  vi.useRealTimers();         // never leak fake timers into the next spec
+});
+
+it('should coalesce rapid changes into a single request', () => {
+  for (let i = 0; i < 5; i++) clickAndDetect(incrementButton());
+
+  vi.advanceTimersByTime(500);
+
+  expect(updateSpy).toHaveBeenCalledTimes(1);
+});
+```
+
+- **It just works:** RxJS time operators schedule through `asyncScheduler`, which is `setTimeout`
+  underneath, and `vi.useFakeTimers()` patches that. No `TestScheduler` and no marble syntax needed
+  for this kind of assertion.
+- **Order matters:** install the fake timers *before* creating the component, or a pipe subscribed
+  in the constructor keeps a reference to the real timer functions.
+- **Always restore in `afterEach`.** Fake timers are global; leaking them makes unrelated specs hang
+  or fail in confusing ways.
+- **Assert the three things that actually matter,** not the internals: (1) the UI updated
+  immediately, (2) nothing was sent before the window elapsed, (3) exactly one request went out
+  after it, carrying the final value.
+
+## Pattern — Testing optimistic updates
+
+When the component updates local state first and persists later, the debounce test above is only
+half the story. Also cover:
+
+- **Independence:** changing two different entities must produce two requests, not one — this is
+  what proves the `groupBy(id)` in the pipe is real and not decoration.
+- **Resync on failure:** make the persist call fail (`throwError`) and assert the list is reloaded.
+  Without this test, a failed save silently leaves a lie on screen.
