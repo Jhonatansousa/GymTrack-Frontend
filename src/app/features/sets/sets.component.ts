@@ -5,11 +5,12 @@ import { WorkoutSet } from '../../core/models/workout-set.model';
 import { DivisionsService } from '../../core/services/divisions.service';
 import { ExercisesService } from '../../core/services/exercises.service';
 import { SetsService } from '../../core/services/sets.service';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { SetCardComponent } from './components/set-card/set-card.component';
 
 @Component({
   selector: 'app-sets',
-  imports: [SetCardComponent],
+  imports: [ConfirmDialogComponent, SetCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="mx-auto flex w-full max-w-5xl flex-col gap-4 p-6">
@@ -70,7 +71,7 @@ import { SetCardComponent } from './components/set-card/set-card.component';
       } @else if (sets().length > 0) {
         <div class="flex flex-col gap-2.5">
           @for (set of sets(); track set.id; let i = $index) {
-            <app-set-card [set]="set" [index]="i" />
+            <app-set-card [set]="set" [index]="i" (remove)="askDeleteSet(set)" />
           }
         </div>
       } @else {
@@ -82,6 +83,17 @@ import { SetCardComponent } from './components/set-card/set-card.component';
             Nenhuma série cadastrada ainda. Toque em "Adicionar Série" para começar.
           </p>
         </div>
+      }
+
+      @if (setToDelete(); as set) {
+        <app-confirm-dialog
+          title="Excluir série"
+          [message]="'Isso vai apagar a série «' + set.name + '». Esta ação não pode ser desfeita.'"
+          confirmLabel="Excluir"
+          [isConfirming]="isDeleting()"
+          (confirm)="confirmDelete()"
+          (cancelled)="cancelDelete()"
+        />
       }
     </section>
   `,
@@ -98,6 +110,8 @@ export class SetsComponent {
   readonly sets = signal<WorkoutSet[]>([]);
   readonly loadError = signal(false);
   readonly isCreating = signal(false);
+  readonly setToDelete = signal<WorkoutSet | null>(null);
+  readonly isDeleting = signal(false);
 
   private readonly divisionId = Number(this.route.snapshot.paramMap.get('divisionId'));
   private readonly exerciseId = Number(this.route.snapshot.paramMap.get('exerciseId'));
@@ -141,6 +155,29 @@ export class SetsComponent {
         this.loadSets();
       },
       error: () => this.isCreating.set(false),
+    });
+  }
+
+  askDeleteSet(set: WorkoutSet): void {
+    this.setToDelete.set(set);
+  }
+
+  cancelDelete(): void {
+    this.setToDelete.set(null);
+  }
+
+  confirmDelete(): void {
+    const set = this.setToDelete();
+    if (!set) return;
+
+    this.isDeleting.set(true);
+    this.setsService.remove(set.id).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.setToDelete.set(null);
+        this.loadSets();
+      },
+      error: () => this.isDeleting.set(false),
     });
   }
 
